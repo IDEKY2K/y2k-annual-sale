@@ -35,7 +35,7 @@ footer{padding-block:32px 44px;color:var(--ink);font-family:'Special Elite','Cou
 </style>
 </head><body>
 <header class="wrap">
-  <h1 class="logo"><img src="assets/logo-annual-sale.png" alt="Y2K Vintage annual sale" width="1200" height="515"></h1>
+  <h1 class="logo"><img src="/assets/logo-annual-sale.png" alt="Y2K Vintage annual sale" width="1200" height="515"></h1>
   <div class="stamp">Fri 27 – Sun 29 November</div>
 </header>
 <nav aria-label="Categories"><div class="wrap chips" id="chips"></div></nav>
@@ -61,13 +61,29 @@ function render(){
     const g=s.querySelector('.grid');
     items.forEach(i=>{
       const d=document.createElement('div');d.className='ph';
-      if(i.photo){const im=document.createElement('img');im.src=i.photo;im.alt=c;im.loading='lazy';d.appendChild(im)}
+      if(i.photo){const im=document.createElement('img');im.src=i.photo.startsWith('http')||i.photo.startsWith('/')?i.photo:'/'+i.photo;im.alt=c;im.loading='lazy';d.appendChild(im)}
       g.appendChild(d);
     });
     main.appendChild(s);
   });
 }
-fetch('items.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;render()})
+fetch('/items.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;render()})
   .catch(()=>{document.getElementById('cats').textContent='Could not load the sale. Please refresh.'});
+</script>
+<script>
+// Visit counter: QR codes open /qr/<tag> (e.g. /qr/poster). One row per page open in Supabase sale_visits.
+(function(){
+  try{
+    var m=location.pathname.match(/^\/qr\/([a-z0-9-]{1,40})/i);
+    var source=m?('qr-'+m[1].toLowerCase()):'direct';
+    var vid=null;
+    try{vid=localStorage.getItem('sale_vid');if(!vid){vid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('sale_vid',vid)}}catch(e){}
+    var device=/iPhone|iPad/.test(navigator.userAgent)?'ios':/Android/.test(navigator.userAgent)?'android':'other';
+    fetch('https://xotyvlaeuyujoqrtdxiy.supabase.co/rest/v1/sale_visits',{method:'POST',keepalive:true,
+      headers:{'apikey':'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu','Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({source:source,visitor_id:vid,device:device,referrer:(document.referrer||'').slice(0,300)})}).catch(function(){});
+    if(m)history.replaceState(null,'','/');
+  }catch(e){}
+})();
 </script>
 </body></html>
