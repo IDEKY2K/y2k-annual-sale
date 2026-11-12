@@ -1,6 +1,6 @@
 {
   "cleanUrls": true,
-  "rewrites": [{ "source": "/qr/:tag", "destination": "/index.html" }],
+  "rewrites": [{ "source": "/qr/:tag", "destination": "/" }],
   "headers": [
     { "source": "/items.json", "headers": [{ "key": "Cache-Control", "value": "public, max-age=60" }] }
   ]

@@ -74,7 +74,7 @@ fetch('/items.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;render
 // Visit counter: QR codes open /qr/<tag> (e.g. /qr/poster). One row per page open in Supabase sale_visits.
 (function(){
   try{
-    var m=location.pathname.match(/^\/qr\/([a-z0-9-]{1,40})/i);
+    var m=location.pathname.match(/^\/qr\/([a-z0-9-]{1,40})/i)||location.search.match(/[?&]qr=([a-z0-9-]{1,40})/i);
     var source=m?('qr-'+m[1].toLowerCase()):'direct';
     var vid=null;
     try{vid=localStorage.getItem('sale_vid');if(!vid){vid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('sale_vid',vid)}}catch(e){}

@@ -1,0 +1,6 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Y2K Vintage Annual Sale</title>
+<script>
+// Safety net: any /qr/<tag> link that isn't caught by the rewrite still lands on the sale page with its tag.
+var m=location.pathname.match(/^\/qr\/([a-z0-9-]{1,40})/i);
+location.replace(m?'/?qr='+m[1]:'/');
+</script></head><body style="background:#7fdce8"></body></html>
