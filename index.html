@@ -5,35 +5,42 @@
 <title>Y2K Vintage Annual Sale</title>
 <meta name="description" content="Y2K Vintage annual sale.">
 <meta property="og:title" content="Y2K Vintage Annual Sale">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&family=Special+Elite&display=swap">
 <style>
-:root{--bg:#ffffff;--fg:#141414;--muted:#6b6b6b;--ph:#ececec;--line:#e2e2e2}
+/* Colours from the BF26 annual sale posters */
+:root{--aqua:#7fdce8;--cream:#fdfcf5;--ink:#1c1c1c;--cyan:#16b4ee;--ph:#bfeef4}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;font-size:15px}
+html{background:var(--aqua)}
+body{margin:0;background:var(--aqua);color:var(--ink);font-family:'Comfortaa',system-ui,sans-serif;font-size:15px}
 .wrap{max-width:600px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-header{padding-block:28px 12px}
-h1{font-size:28px;margin:0 0 4px;text-transform:uppercase;letter-spacing:.02em}
-header p{margin:0;color:var(--muted)}
-nav{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);z-index:2}
+header{padding-block:36px 18px;color:var(--cream)}
+.logo{font-weight:700;font-size:clamp(44px,13vw,64px);line-height:.95;letter-spacing:-.01em;margin:0}
+.logo span{display:block;font-weight:500;font-size:.42em;text-align:right;letter-spacing:.04em;margin-top:6px}
+.stamp{display:inline-block;margin-top:18px;font-family:'Special Elite','Courier New',monospace;color:var(--ink);border:2px dashed var(--ink);border-radius:999px;padding:6px 14px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;transform:rotate(-3deg)}
+nav{position:sticky;top:0;background:var(--aqua);z-index:2}
 .chips{display:flex;gap:8px;overflow-x:auto;padding-block:10px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:none;font:inherit;font-size:14px;border:1px solid var(--fg);background:transparent;color:var(--fg);border-radius:999px;padding:7px 14px;cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
-section{padding-block:20px 4px}
-h2{font-size:18px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.03em}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.chip{flex:none;font:inherit;font-weight:700;font-size:14px;border:2px solid var(--cream);background:transparent;color:var(--cream);border-radius:999px;padding:7px 15px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--cream);color:var(--ink)}
+.chip:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+section{padding-block:22px 4px}
+h2{font-weight:700;font-size:22px;margin:0 0 12px;color:var(--cream);text-transform:lowercase}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 @media (min-width:520px){.grid{grid-template-columns:repeat(3,1fr)}}
-.ph{aspect-ratio:4/5;background:var(--ph);border-radius:4px;overflow:hidden}
+.ph{aspect-ratio:4/5;background:var(--cream);border-radius:14px;overflow:hidden}
+.ph:empty{background:var(--ph);border:2px dotted var(--cream)}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
-footer{padding-block:28px 40px;color:var(--muted);font-size:13px}
+footer{padding-block:32px 44px;color:var(--ink);font-family:'Special Elite','Courier New',monospace;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
 </style>
 </head><body>
 <header class="wrap">
-  <h1>Annual Sale</h1>
-  <p>Y2K Vintage</p>
+  <h1 class="logo">y2k vintage<span>annual sale</span></h1>
+  <div class="stamp">November 29, 2026</div>
 </header>
 <nav aria-label="Categories"><div class="wrap chips" id="chips"></div></nav>
 <main class="wrap" id="cats"></main>
-<footer class="wrap">Y2K Vintage</footer>
+<footer class="wrap">@y2kxvintage</footer>
 <script>
 let DATA={categories:[],items:[]};let active='all';
 function render(){
