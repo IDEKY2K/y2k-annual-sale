@@ -3,8 +3,7 @@
     "Tops",
     "Bottoms",
     "Dresses",
-    "Outerwear",
-    "Bags & Accessories"
+    "Outerwear"
   ],
   "items": [
     {
@@ -84,26 +83,6 @@
     },
     {
       "category": "Outerwear",
-      "photo": "",
-      "active": true
-    },
-    {
-      "category": "Bags & Accessories",
-      "photo": "",
-      "active": true
-    },
-    {
-      "category": "Bags & Accessories",
-      "photo": "",
-      "active": true
-    },
-    {
-      "category": "Bags & Accessories",
-      "photo": "",
-      "active": true
-    },
-    {
-      "category": "Bags & Accessories",
       "photo": "",
       "active": true
     }
