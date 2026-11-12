@@ -15,9 +15,9 @@ html{background:var(--aqua)}
 body{margin:0;background:var(--aqua);color:var(--ink);font-family:'Comfortaa',system-ui,sans-serif;font-size:15px}
 .wrap{max-width:600px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 header{padding-block:36px 18px;color:var(--cream)}
-.logo{font-weight:700;font-size:clamp(44px,13vw,64px);line-height:.95;letter-spacing:-.01em;margin:0}
-.logo span{display:block;font-weight:500;font-size:.42em;text-align:right;letter-spacing:.04em;margin-top:6px}
-.stamp{display:inline-block;margin-top:18px;font-family:'Special Elite','Courier New',monospace;color:var(--ink);border:2px dashed var(--ink);border-radius:999px;padding:6px 14px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;transform:rotate(-3deg)}
+.logo{margin:0;line-height:0}
+.logo img{width:100%;max-width:480px;height:auto}
+.stamp{display:inline-block;margin-top:20px;font-family:'Special Elite','Courier New',monospace;color:var(--ink);border:2px dashed var(--ink);border-radius:999px;padding:6px 14px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;transform:rotate(-3deg)}
 nav{position:sticky;top:0;background:var(--aqua);z-index:2}
 .chips{display:flex;gap:8px;overflow-x:auto;padding-block:10px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
@@ -35,8 +35,8 @@ footer{padding-block:32px 44px;color:var(--ink);font-family:'Special Elite','Cou
 </style>
 </head><body>
 <header class="wrap">
-  <h1 class="logo">y2k vintage<span>annual sale</span></h1>
-  <div class="stamp">November 29, 2026</div>
+  <h1 class="logo"><img src="assets/logo-annual-sale.png" alt="Y2K Vintage annual sale" width="1200" height="515"></h1>
+  <div class="stamp">Fri 27 – Sun 29 November</div>
 </header>
 <nav aria-label="Categories"><div class="wrap chips" id="chips"></div></nav>
 <main class="wrap" id="cats"></main>
