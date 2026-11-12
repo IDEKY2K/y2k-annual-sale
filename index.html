@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Y2K Vintage annual sale: every piece £5 to £30.">
+<meta property="og:title" content="Y2K Vintage Annual Sale">
+<meta property="og:description" content="It's all under £30. One-offs only.">
+<title>Y2K Annual Sale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@500&display=swap">
+<style>
+/* Layout: street-flyer hero, sticky price-band chips, 2-col photo grid per band */
+:root{
+  --paper:#bfe3f2;      /* flyer blue */
+  --ink:#141414;
+  --bg:#f6f8f9;
+  --card:#ffffff;
+  --muted:#5b6670;
+  --pink:#ff4fa3;
+  --line:#dfe5ea;
+  --display:'Anton','Impact','Arial Narrow',sans-serif;
+  --body:'DM Sans',system-ui,-apple-system,sans-serif;
+  --mono:'DM Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#101315;--card:#1a1f22;--muted:#9aa6ae;--line:#2a3237;--ink:#141414;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101315;--card:#1a1f22;--muted:#9aa6ae;--line:#2a3237;--ink:#141414;color-scheme:dark}
+body{background:var(--bg);color:var(--fg,inherit);font-family:var(--body);font-size:15px;margin:0}
+body{--fg:var(--ink)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) body{--fg:#eef2f4}}
+:root[data-theme="dark"] body{--fg:#eef2f4}
+body{color:var(--fg)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+.hero{background:var(--paper);color:var(--ink);padding-block:28px 26px;border-bottom:2px solid var(--ink)}
+.handle{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;display:flex;justify-content:space-between;gap:8px}
+.hero h1{font-family:var(--display);font-weight:400;font-size:clamp(52px,17vw,88px);line-height:.9;margin:18px 0 12px;text-transform:uppercase;letter-spacing:.005em;text-wrap:balance}
+.hero h1 em{font-style:normal;color:var(--pink);-webkit-text-stroke:1.5px var(--ink)}
+.hero p{margin:0;font-size:16px;max-width:34ch;line-height:1.45}
+.facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.facts span{border:1.5px solid var(--ink);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:500;background:rgba(255,255,255,.45)}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-block:12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;font:inherit;font-weight:700;font-size:14px;border:1.5px solid var(--fg);background:transparent;color:var(--fg);border-radius:999px;padding:8px 14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.chip:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+
+.band{padding-block:22px 6px}
+.band h2{font-family:var(--display);font-weight:400;font-size:34px;text-transform:uppercase;margin:0;display:flex;align-items:baseline;gap:10px}
+.band h2 small{font-family:var(--body);font-size:13px;color:var(--muted);text-transform:none;font-weight:500}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.item{background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--line);display:flex;flex-direction:column}
+.ph{aspect-ratio:4/5;max-width:100%;display:grid;place-items:center;position:relative}
+.ph img{width:100%;height:100%;object-fit:cover}
+.ph .ph-label{font-family:var(--display);font-size:22px;text-transform:uppercase;color:rgba(20,20,20,.55);text-align:center;padding:10px;line-height:1}
+.price{position:absolute;left:8px;top:8px;background:var(--pink);color:#141414;font-family:var(--display);font-size:20px;padding:2px 8px;border-radius:6px;border:1.5px solid #141414}
+.meta{padding:10px 10px 12px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.meta b{font-size:14px;font-weight:700;line-height:1.25}
+.meta span{font-size:12px;color:var(--muted)}
+
+.sample{margin-top:14px;font-size:12px;font-family:var(--mono);color:var(--muted);border:1px dashed var(--line);border-radius:8px;padding:8px 10px}
+.foot{padding-block:28px 40px;color:var(--muted);font-size:13px;line-height:1.5}
+.foot b{color:var(--fg)}
+@media (prefers-reduced-motion:no-preference){.item{transition:transform .15s}.item:active{transform:scale(.98)}}
+</style>
+
+</head><body>
+<header class="hero">
+  <div class="wrap">
+    <div class="handle"><span>@y2kxvintage</span><span>Annual sale</span></div>
+    <h1>It's all under <em>£30</em></h1>
+    <p>Our biggest sale of the year. Every piece below is £5 to £30, one-offs only, so when it's gone it's gone.</p>
+    <div class="facts"><span>£5 – £30</span><span>All stores</span><span id="dates">Dates TBC</span></div>
+  </div>
+</header>
+
+<nav class="bar" aria-label="Filter by price">
+  <div class="wrap chips" id="chips"></div>
+</nav>
+
+<main class="wrap" id="bands"></main>
+
+<footer class="wrap foot">
+  <div class="sample" id="sample">Draft preview. Items shown are samples until your real sale photos and prices are loaded.</div>
+  <p><b>Y2K Vintage</b> · Brick Lane · Mens · Notting Hill. Come in store to shop the sale.</p>
+</footer>
+
+<script>
+// Price bands: edit here to change sections. Each item lands in the first band whose max covers its price.
+const BANDS=[
+  {id:'5-10', label:'£5 – £10', min:5, max:10, note:'Steals'},
+  {id:'10-20',label:'£10 – £20',min:10.01,max:20, note:'Mid'},
+  {id:'20-30',label:'£20 – £30',min:20.01,max:30, note:'Statement pieces'}
+];
+let ITEMS=[];
+const fmt=p=>'£'+(Number.isInteger(p)?p:p.toFixed(2));
+let active='all';
+try{const s=localStorage.getItem('sale-band');if(s)active=s}catch(e){}
+
+function render(){
+  const chips=document.getElementById('chips');
+  chips.innerHTML='';
+  [{id:'all',label:'Everything'}].concat(BANDS).forEach(b=>{
+    const el=document.createElement('button');
+    el.className='chip';el.id='chip-'+b.id;el.textContent=b.label;
+    el.setAttribute('aria-pressed',String(active===b.id));
+    el.onclick=()=>{active=b.id;try{localStorage.setItem('sale-band',active)}catch(e){}render();window.scrollTo({top:document.querySelector('.bar').offsetTop,behavior:'smooth'})};
+    chips.appendChild(el);
+  });
+  const main=document.getElementById('bands');main.innerHTML='';
+  if(!ITEMS.length){main.innerHTML='<section class="band"><h2>Pieces dropping soon</h2></section>';return;}
+  BANDS.filter(b=>active==='all'||active===b.id).forEach(b=>{
+    const items=ITEMS.filter(i=>i.price>=b.min&&i.price<=b.max).sort((a,c)=>a.price-c.price);
+    if(!items.length)return;
+    const sec=document.createElement('section');sec.className='band';sec.id='band-'+b.id;
+    sec.innerHTML=`<h2>${b.label}<small>${items.length} pieces · ${b.note}</small></h2><div class="grid"></div>`;
+    const g=sec.querySelector('.grid');
+    items.forEach(i=>{
+      const card=document.createElement('article');card.className='item';
+      const ph=i.photo?`<img src="${i.photo}" alt="${i.name}" loading="lazy">`:`<div class="ph-label">${i.name}</div>`;
+      card.innerHTML=`<div class="ph" style="background:${i.c||'#e5e5e5'}">${ph}<span class="price">${fmt(i.price)}</span></div><div class="meta"><b>${i.name}</b><span>${i.store}</span></div>`;
+      g.appendChild(card);
+    });
+    main.appendChild(sec);
+  });
+}
+fetch('items.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
+  ITEMS=(d.items||[]).filter(i=>i.active!==false);
+  document.getElementById('sample').hidden=!d.sample;
+  if(d.dates)document.getElementById('dates').textContent=d.dates;
+  render();
+}).catch(()=>{document.getElementById('bands').innerHTML='<p class="band">Couldn\'t load the sale pieces. Pull down to refresh.</p>'});
+render();
+</script>
+
+</body></html>

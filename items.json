@@ -1,0 +1,102 @@
+{
+  "sample": true,
+  "dates": "Dates TBC",
+  "items": [
+    {
+      "name": "Butterfly clip set",
+      "price": 5,
+      "store": "Brick Lane",
+      "photo": "",
+      "c": "#ffd6ea",
+      "active": true
+    },
+    {
+      "name": "Baby tee, logo",
+      "price": 8,
+      "store": "Notting Hill",
+      "photo": "",
+      "c": "#d7f0c8",
+      "active": true
+    },
+    {
+      "name": "Mesh long-sleeve",
+      "price": 10,
+      "store": "Brick Lane",
+      "photo": "",
+      "c": "#e6dcff",
+      "active": true
+    },
+    {
+      "name": "Tinted shades",
+      "price": 7,
+      "store": "Mens",
+      "photo": "",
+      "c": "#fff1b8",
+      "active": true
+    },
+    {
+      "name": "Low-rise flares",
+      "price": 18,
+      "store": "Notting Hill",
+      "photo": "",
+      "c": "#cfe8ff",
+      "active": true
+    },
+    {
+      "name": "Velour zip hoodie",
+      "price": 20,
+      "store": "Brick Lane",
+      "photo": "",
+      "c": "#ffd9c2",
+      "active": true
+    },
+    {
+      "name": "Graphic racer tee",
+      "price": 14,
+      "store": "Mens",
+      "photo": "",
+      "c": "#d6f5ef",
+      "active": true
+    },
+    {
+      "name": "Slip skirt, satin",
+      "price": 16,
+      "store": "Notting Hill",
+      "photo": "",
+      "c": "#f4d9ff",
+      "active": true
+    },
+    {
+      "name": "Leather shoulder bag",
+      "price": 30,
+      "store": "Brick Lane",
+      "photo": "",
+      "c": "#e9e2d6",
+      "active": true
+    },
+    {
+      "name": "Track jacket",
+      "price": 28,
+      "store": "Mens",
+      "photo": "",
+      "c": "#cfd8ff",
+      "active": true
+    },
+    {
+      "name": "Denim mini",
+      "price": 25,
+      "store": "Notting Hill",
+      "photo": "",
+      "c": "#d3e4f0",
+      "active": true
+    },
+    {
+      "name": "Faux-fur trim coat",
+      "price": 30,
+      "store": "Brick Lane",
+      "photo": "",
+      "c": "#f0e0d0",
+      "active": true
+    }
+  ]
+}
