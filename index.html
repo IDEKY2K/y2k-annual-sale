@@ -7,7 +7,7 @@
 <meta property="og:title" content="Y2K Vintage Annual Sale">
 <style>
 /* Layout mimics the Canva "BF WEBSITE" mock: black Arial headline spanning the width, then photos */
-:root{--aqua:#66ddfb;--ink:#111111;--ph:#b8eefd;--white:#ffffff}
+:root{--aqua:#66ddfb;--ink:#111111;--ph:#9fe6fb;--frame:#d4f6ff;--white:#ffffff}
 *{box-sizing:border-box}
 html{background:var(--aqua)}
 body{margin:0;background:var(--aqua);color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:15px;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
@@ -29,8 +29,9 @@ nav{position:sticky;top:0;z-index:2;background:var(--aqua)}
 section{padding-block:14px 4px}
 h2{font-weight:700;font-size:20px;letter-spacing:-.05em;margin:0 0 10px;color:var(--ink);text-transform:uppercase}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-.ph{aspect-ratio:4/5;background:var(--white);overflow:hidden}
-.ph:empty{background:var(--ph)}
+/* Each photo sits in a lighter-blue frame (mat) */
+.ph{aspect-ratio:4/5;background:var(--frame);padding:10px;border-radius:6px;overflow:hidden}
+.ph:empty::before{content:"";display:block;width:100%;height:100%;background:var(--ph)}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
 footer{padding-block:28px 40px;font-size:13px;font-weight:700;text-align:center;letter-spacing:-.02em}
 .topbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:3;box-shadow:0 6px 20px rgba(0,0,0,.18)}
