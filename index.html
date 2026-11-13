@@ -15,8 +15,7 @@ html{background:var(--aqua)}
 body{margin:0;background:var(--aqua);color:var(--ink);font-family:'Comfortaa',system-ui,sans-serif;font-size:15px}
 .wrap{max-width:600px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 header{padding-block:36px 18px;color:var(--cream)}
-.logo{margin:0;line-height:0}
-.logo img{width:100%;max-width:480px;height:auto}
+.headline{margin:0;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:57px;line-height:1.02;color:var(--cream);overflow-wrap:break-word}
 .stamp{display:inline-block;margin-top:20px;font-family:'Special Elite','Courier New',monospace;color:var(--ink);border:2px dashed var(--ink);border-radius:999px;padding:6px 14px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;transform:rotate(-3deg)}
 .topbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:3;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 nav{position:sticky;top:0;z-index:2}
@@ -39,8 +38,10 @@ footer{padding-block:32px 44px;color:var(--ink);font-family:'Special Elite','Cou
 </style>
 </head><body>
 <header class="wrap">
-  <h1 class="logo"><img src="/assets/logo-annual-sale.png" alt="Y2K Vintage annual sale" width="1200" height="515"></h1>
-  <div class="stamp">Fri 27 – Sun 29 November</div>
+  <h1 class="headline">WE’RE SELLING THEM FOR £5 - £30.<br>
+Y2K VINTAGE ANNUAL SALE.<br>
+SHOP IN STORE.<br>
+ONE. WEEKEND. ONLY.</h1>
 </header>
 <nav aria-label="Categories"><div class="wrap chips" id="chips"></div></nav>
 <main class="wrap" id="cats"></main>
