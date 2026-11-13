@@ -85,9 +85,16 @@ fetch('/items.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;render
     var vid=null;
     try{vid=localStorage.getItem('sale_vid');if(!vid){vid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('sale_vid',vid)}}catch(e){}
     var device=/iPhone|iPad/.test(navigator.userAgent)?'ios':/Android/.test(navigator.userAgent)?'android':'other';
-    fetch('https://xotyvlaeuyujoqrtdxiy.supabase.co/rest/v1/sale_visits',{method:'POST',keepalive:true,
+    var row={source:source,visitor_id:vid,device:device,referrer:(document.referrer||'').slice(0,300)};
+    var log=function(){fetch('https://xotyvlaeuyujoqrtdxiy.supabase.co/rest/v1/sale_visits',{method:'POST',keepalive:true,
       headers:{'apikey':'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu','Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({source:source,visitor_id:vid,device:device,referrer:(document.referrer||'').slice(0,300)})}).catch(function(){});
+      body:JSON.stringify(row)}).catch(function(){})};
+    // Approximate city from the visitor's connection (Vercel geo). If it fails or is slow, log without it.
+    var done=false,once=function(){if(!done){done=true;log()}};
+    setTimeout(once,2500);
+    fetch('/api/geo',{cache:'no-store'}).then(function(r){return r.json()}).then(function(g){
+      if(g){row.city=g.city?String(g.city).slice(0,80):null;row.region=g.region?String(g.region).slice(0,20):null;row.country=g.country?String(g.country).slice(0,5):null}
+      once()}).catch(once);
     if(m)history.replaceState(null,'','/');
   }catch(e){}
 })();
