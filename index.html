@@ -21,7 +21,7 @@ header{padding-block:36px 18px;color:var(--cream)}
 .topbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:3;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 nav{position:sticky;top:0;z-index:2}
 body{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
-.banner{background:#ffffff;color:var(--ink);text-align:center;font-weight:700;font-size:15px;letter-spacing:.02em;padding:13px 24px;border-radius:999px;white-space:nowrap}
+.banner{display:block;text-decoration:none;background:#ffffff;color:var(--ink);text-align:center;font-weight:700;font-size:15px;letter-spacing:.02em;padding:13px 24px;border-radius:999px;white-space:nowrap}
 nav{background:var(--aqua)}
 .chips{display:flex;gap:8px;overflow-x:auto;padding-block:10px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
@@ -45,7 +45,7 @@ footer{padding-block:32px 44px;color:var(--ink);font-family:'Special Elite','Cou
 <nav aria-label="Categories"><div class="wrap chips" id="chips"></div></nav>
 <main class="wrap" id="cats"></main>
 <footer class="wrap">@y2kxvintage</footer>
-<div class="banner topbar">Want early access?</div>
+<a class="banner topbar" href="https://linktr.ee/y2kxvintage?utm_source=annual_sale_page&amp;utm_medium=qr&amp;utm_campaign=early_access">Want early access?</a>
 <script>
 let DATA={categories:[],items:[]};let active='all';
 function render(){
