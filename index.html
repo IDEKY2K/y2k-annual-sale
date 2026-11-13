@@ -48,35 +48,21 @@ footer{padding-block:28px 40px;font-size:13px;font-weight:700;text-align:center;
   <p class="sub">27<sup>th</sup> - 29<sup>th</sup> NOVEMBER &nbsp;★&nbsp; Y2K VINTAGE STORES</p>
   <p class="peek">SNEAK PEEK BELOW</p>
 </header>
-<nav aria-label="Categories"><div class="wrap chips" id="chips"></div></nav>
-<main class="wrap" id="cats"></main>
+<main class="wrap" id="cats" style="padding-top:14px"></main>
 <footer class="wrap">@Y2KXVINTAGE</footer>
 <a class="banner topbar" href="https://linktr.ee/y2kxvintage?utm_source=annual_sale_page&amp;utm_medium=qr&amp;utm_campaign=early_access">Want early access?</a>
 <script>
-let DATA={categories:[],items:[]};let active='all';
+let DATA={items:[]};
 function render(){
-  const cats=DATA.categories;
-  const chips=document.getElementById('chips');chips.innerHTML='';
-  ['all'].concat(cats).forEach(c=>{
-    const b=document.createElement('button');b.className='chip';b.textContent=c==='all'?'All':c;
-    b.setAttribute('aria-pressed',String(active===c));
-    b.onclick=()=>{active=c;render()};chips.appendChild(b);
-  });
+  // One photo grid, no categories (for now). Each item: {photo, active}.
   const main=document.getElementById('cats');main.innerHTML='';
-  cats.filter(c=>active==='all'||active===c).forEach(c=>{
-    const items=DATA.items.filter(i=>i.category===c&&i.active!==false);
-    if(!items.length)return;
-    const s=document.createElement('section');
-    s.innerHTML='<h2></h2><div class="grid"></div>';
-    s.querySelector('h2').textContent=c;
-    const g=s.querySelector('.grid');
-    items.forEach(i=>{
-      const d=document.createElement('div');d.className='ph';
-      if(i.photo){const im=document.createElement('img');im.src=i.photo.startsWith('http')||i.photo.startsWith('/')?i.photo:'/'+i.photo;im.alt=c;im.loading='lazy';d.appendChild(im)}
-      g.appendChild(d);
-    });
-    main.appendChild(s);
+  const g=document.createElement('div');g.className='grid';
+  DATA.items.filter(i=>i.active!==false).forEach(i=>{
+    const d=document.createElement('div');d.className='ph';
+    if(i.photo){const im=document.createElement('img');im.src=i.photo.startsWith('http')||i.photo.startsWith('/')?i.photo:'/'+i.photo;im.alt='Sale piece';im.loading='lazy';d.appendChild(im)}
+    g.appendChild(d);
   });
+  main.appendChild(g);
 }
 function fitHeadline(){
   const h=document.getElementById('headline');if(!h)return;

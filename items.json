@@ -1,88 +1,43 @@
 {
-  "categories": [
-    "Tops",
-    "Bottoms",
-    "Dresses",
-    "Outerwear"
-  ],
+  "categories": [],
   "items": [
     {
-      "category": "Tops",
       "photo": "",
       "active": true
     },
     {
-      "category": "Tops",
       "photo": "",
       "active": true
     },
     {
-      "category": "Tops",
       "photo": "",
       "active": true
     },
     {
-      "category": "Tops",
       "photo": "",
       "active": true
     },
     {
-      "category": "Bottoms",
       "photo": "",
       "active": true
     },
     {
-      "category": "Bottoms",
       "photo": "",
       "active": true
     },
     {
-      "category": "Bottoms",
       "photo": "",
       "active": true
     },
     {
-      "category": "Bottoms",
       "photo": "",
       "active": true
     },
     {
-      "category": "Dresses",
       "photo": "",
       "active": true
     },
     {
-      "category": "Dresses",
-      "photo": "",
-      "active": true
-    },
-    {
-      "category": "Dresses",
-      "photo": "",
-      "active": true
-    },
-    {
-      "category": "Dresses",
-      "photo": "",
-      "active": true
-    },
-    {
-      "category": "Outerwear",
-      "photo": "",
-      "active": true
-    },
-    {
-      "category": "Outerwear",
-      "photo": "",
-      "active": true
-    },
-    {
-      "category": "Outerwear",
-      "photo": "",
-      "active": true
-    },
-    {
-      "category": "Outerwear",
       "photo": "",
       "active": true
     }
