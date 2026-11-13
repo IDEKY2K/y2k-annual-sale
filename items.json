@@ -1,45 +1,93 @@
 {
-  "categories": [],
-  "items": [
-    {
-      "photo": "",
-      "active": true
-    },
-    {
-      "photo": "",
-      "active": true
-    },
-    {
-      "photo": "",
-      "active": true
-    },
-    {
-      "photo": "",
-      "active": true
-    },
-    {
-      "photo": "",
-      "active": true
-    },
-    {
-      "photo": "",
-      "active": true
-    },
-    {
-      "photo": "",
-      "active": true
-    },
-    {
-      "photo": "",
-      "active": true
-    },
-    {
-      "photo": "",
-      "active": true
-    },
-    {
-      "photo": "",
-      "active": true
-    }
-  ]
+ "categories": [],
+ "items": [
+  {
+   "photo": "photos/sale-01.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-02.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-03.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-04.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-05.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-06.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-07.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-08.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-09.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-10.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-11.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-12.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-13.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-14.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-15.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-16.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-17.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-18.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-19.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-20.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-21.jpg",
+   "active": true
+  },
+  {
+   "photo": "photos/sale-22.jpg",
+   "active": true
+  }
+ ]
 }
