@@ -2,5 +2,5 @@
 <script>
 // Safety net: any /qr/<tag> link that isn't caught by the rewrite still lands on the sale page with its tag.
 var m=location.pathname.match(/^\/qr\/([a-z0-9-]{1,40})/i);
-location.replace(m?'/?qr='+m[1]:'/');
+location.replace(m?(/^bl-/i.test(m[1])?'/brighton-leeds?qr=':'/?qr=')+m[1]:'/');
 </script></head><body style="background:#66ddfb"></body></html>

@@ -51,7 +51,13 @@ footer{padding-block:28px 40px;font-size:13px;font-weight:700;text-align:center;
 </header>
 <main class="wrap" id="cats" style="padding-top:14px"></main>
 <footer class="wrap">@Y2KXVINTAGE</footer>
-<a class="banner topbar" href="https://linktr.ee/y2kxvintage?utm_source=annual_sale_page&amp;utm_medium=qr&amp;utm_campaign=early_access">Want early access?</a>
+<a class="banner topbar" id="early" href="https://linktr.ee/y2kxvintage?utm_source=annual_sale_page&amp;utm_medium=qr&amp;utm_campaign=early_access">Want early access?</a>
+<script>
+// Two versions of this page: London (default, with early access) and Brighton & Leeds (/brighton-leeds, no early access).
+// Brighton & Leeds QR tags start with "bl-".
+var SALE_BL=/^\/brighton-leeds/.test(location.pathname)||/^\/qr\/bl-/i.test(location.pathname)||/[?&]qr=bl-/i.test(location.search);
+if(SALE_BL){var e=document.getElementById('early');if(e)e.remove();document.body.style.paddingBottom='0'}
+</script>
 <script>
 let DATA={items:[]};
 function render(){
@@ -95,7 +101,7 @@ fetch('/items.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;render
     fetch('/api/geo',{cache:'no-store'}).then(function(r){return r.json()}).then(function(g){
       if(g){row.city=g.city?String(g.city).slice(0,80):null;row.region=g.region?String(g.region).slice(0,20):null;row.country=g.country?String(g.country).slice(0,5):null}
       once()}).catch(once);
-    if(m)history.replaceState(null,'','/');
+    if(m||SALE_BL)history.replaceState(null,'',SALE_BL?'/brighton-leeds':'/');
   }catch(e){}
 })();
 </script>
