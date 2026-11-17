@@ -140,10 +140,15 @@ $('signout').onclick=e=>{e.preventDefault();store.del('sale_admin_pass');PASS=nu
 
 async function openWork(){
   $('whoami').textContent=WHO;show('work');
-  const [items,prices]=await Promise.all([
+  let items,prices;
+  try{[items,prices]=await Promise.all([
     fetch('/items.json',{cache:'no-store'}).then(r=>r.json()),
     fetch(SB+'/rest/v1/sale_item_prices?select=photo,old_price,new_price,priced_by',{headers:H,cache:'no-store'}).then(r=>r.json())
-  ]);
+  ])}catch(e){
+    // The sale site's password screen blocks the photos until this phone has unlocked the site once.
+    $('work').innerHTML='<div class="card"><p><b>Unlock the sale site first.</b> The photos are behind the sale site password. Open <a href="/" style="color:inherit">sale.y2kxvintage.com</a>, enter the site password, then come back to this page.</p></div>';
+    return;
+  }
   ITEMS=(items.items||[]).filter(i=>i.active!==false&&i.photo).map(i=>i.photo.replace(/^\//,''));
   PRICES={};prices.forEach(p=>PRICES[p.photo]=p);
   const firstOpen=ITEMS.findIndex(p=>!priced(p));idx=firstOpen<0?0:firstOpen;
