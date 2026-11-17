@@ -59,7 +59,8 @@ footer{padding-block:28px 40px;font-size:13px;font-weight:700;text-align:center;
   <p class="sub">27<sup>th</sup> - 29<sup>th</sup> NOVEMBER &nbsp;★&nbsp; Y2K VINTAGE STORES</p>
   <p class="peek">SNEAK PEEK BELOW</p>
 </header>
-<main class="wrap" id="cats" style="padding-top:14px"></main>
+<nav class="wrap" aria-label="Category"><div class="chips" id="cat"><button class="chip" data-g="womens" aria-pressed="true">Womens</button><button class="chip" data-g="mens" aria-pressed="false">Mens</button></div></nav>
+<main class="wrap" id="cats" style="padding-top:4px"></main>
 <footer class="wrap">@Y2KXVINTAGE</footer>
 <div class="topbar"><a class="banner" id="early" href="https://linktr.ee/y2kxvintage?utm_source=annual_sale_page&amp;utm_medium=qr&amp;utm_campaign=early_access">Want early access?</a><a class="banner lower" href="https://www.instagram.com/y2kxvintage/" target="_blank" rel="noopener">SOCIALS</a></div>
 <script>
@@ -71,6 +72,9 @@ if(SALE_BL){var e=document.getElementById('early');if(e)e.remove()}
 <script>
 let DATA={items:[]};
 let PRICES=null; // filled from Supabase when prices are switched on in /admin
+let GENDERS={}; // photo -> 'womens' | 'mens' (set in /admin). Untagged photos show in both.
+let CAT=/mens$/.test(location.hash)&&!/womens$/.test(location.hash)?'mens':'womens';
+document.querySelectorAll('#cat .chip').forEach(b=>b.onclick=()=>{CAT=b.dataset.g;try{history.replaceState(null,'','#'+CAT)}catch(e){}render()});
 function photoSrc(p){return p.startsWith('http')||p.startsWith('/')?p:'/'+p}
 function money(v){v=+v;return '£'+(v%1?v.toFixed(2):v)}
 function render(){
@@ -79,7 +83,8 @@ function render(){
   const main=document.getElementById('cats');main.innerHTML='';
   const key=p=>p.replace(/^\//,'');
   const g=document.createElement('div');g.className='grid';
-  DATA.items.filter(i=>i.active!==false&&i.photo).forEach(i=>{
+  document.querySelectorAll('#cat .chip').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.g===CAT)));
+  DATA.items.filter(i=>i.active!==false&&i.photo&&(!GENDERS[key(i.photo)]||GENDERS[key(i.photo)]===CAT)).forEach(i=>{
     const d=document.createElement('div');d.className='ph';
     const im=document.createElement('img');im.src=photoSrc(i.photo);im.alt='Sale piece';im.loading='lazy';d.appendChild(im);
     const pr=PRICES&&PRICES[key(i.photo)];
@@ -111,6 +116,10 @@ Promise.all([
 // Prices: only shown once they are switched on in /admin.
 (function(){
   var SB='https://xotyvlaeuyujoqrtdxiy.supabase.co',H={apikey:'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu','Content-Type':'application/json'};
+  // Womens/Mens tags are always used for the category switch.
+  fetch(SB+'/rest/v1/sale_item_prices?select=photo,gender&gender=not.is.null',{headers:H}).then(r=>r.json()).then(rows=>{
+    GENDERS={};rows.forEach(r=>GENDERS[r.photo]=r.gender);if(DATA.items.length)render();
+  }).catch(()=>{});
   fetch(SB+'/rest/v1/rpc/sale_admin_status',{method:'POST',headers:H,body:'{}'}).then(r=>r.json()).then(s=>{
     if(!s||!s.slideshow_live)return;
     return fetch(SB+'/rest/v1/sale_item_prices?select=photo,old_price,new_price&new_price=not.is.null',{headers:H}).then(r=>r.json()).then(rows=>{
