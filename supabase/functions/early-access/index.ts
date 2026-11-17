@@ -31,15 +31,15 @@ async function sha256(s: string) {
 }
 
 // ---- The email. Wording is exactly as Sameer wrote it (17 Nov). Style follows sale.y2kxvintage.com:
-// aqua background, black Arial bold, white bubbles. Colours are locked against email-app dark mode. No photos (user, 17 Nov). Email-safe: tables + inline styles.
+// aqua background, black Arial bold, white bubbles. Colours are locked against email-app dark mode. No photos, all text in capitals (user, 17 Nov). Email-safe: tables + inline styles.
 const AQUA = "#00e0ff", INK = "#111111";
 function email() {
   const subject = "You’re on the list! Y2K Vintage Early Access Sip ’n’ Shop";
-  const p = (t: string, extra = "") => `<p style="margin:0 0 14px;font-size:16px;line-height:1.45;font-weight:700;letter-spacing:-0.3px;color:${INK}${extra}">${t}</p>`;
+  const p = (t: string, extra = "") => `<p style="margin:0 0 14px;font-size:16px;line-height:1.45;font-weight:700;letter-spacing:-0.3px;color:${INK}${extra}">${t.toUpperCase()}</p>`;
   const store = (name: string, addr: string) =>
     `<td width="50%" style="padding:6px;vertical-align:top"><div class="bubble" style="background-color:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);border-radius:14px;padding:14px 14px 12px">
-<div style="font-size:18px;font-weight:700;letter-spacing:-0.6px;color:${INK};text-transform:uppercase">${name}</div>
-<div style="font-size:14px;font-weight:700;letter-spacing:-0.2px;color:${INK};margin-top:4px;line-height:1.35">${addr}</div></div></td>`;
+<div style="font-size:18px;font-weight:700;letter-spacing:-0.6px;color:${INK};text-transform:uppercase">${name.toUpperCase()}</div>
+<div style="font-size:14px;font-weight:700;letter-spacing:-0.2px;color:${INK};margin-top:4px;line-height:1.35">${addr.toUpperCase().replace(/<BR>/g, "<br>")}</div></div></td>`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"><title>${esc(subject)}</title>
 <style>
 :root{color-scheme:light only;supported-color-schemes:light only}
@@ -55,7 +55,7 @@ function email() {
 }
 </style></head>
 <body class="bg" style="margin:0;padding:0;background-color:${AQUA};background-image:linear-gradient(${AQUA},${AQUA})">
-<div style="display:none;max-height:0;overflow:hidden">Annual Sale Early Access Sip n Shop this Thursday 6:30pm.</div>
+<div style="display:none;max-height:0;overflow:hidden">ANNUAL SALE EARLY ACCESS SIP N SHOP THIS THURSDAY 6:30PM.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="bg" bgcolor="${AQUA}" style="background-color:${AQUA};background-image:linear-gradient(${AQUA},${AQUA})"><tr><td align="center" style="padding:28px 14px 36px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="ink" style="max-width:560px;font-family:Arial,Helvetica,sans-serif;color:${INK}">
 <tr><td style="padding:0 6px">
