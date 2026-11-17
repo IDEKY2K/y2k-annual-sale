@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Sale categories</title>
+<style>
+/* Staff category screen for the annual sale. Same look as /admin (pricing). Behind the site password. */
+:root{--aqua:#66ddfb;--ink:#111;--frame:#d4f6ff;--white:#fff;--ok:#0a7a3d;--warn:#b3261e}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--aqua);color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:16px}
+.wrap{max-width:560px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-left,0px)) 40px}
+h1{font-size:26px;letter-spacing:-.05em;margin:6px 0 4px}
+h2{font-size:18px;letter-spacing:-.04em;margin:22px 0 8px}
+a{color:inherit}
+.card{background:var(--white);border-radius:14px;padding:16px}
+label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
+input[type=text]{width:100%;font:inherit;font-size:20px;padding:12px;border:2px solid var(--ink);border-radius:10px;background:var(--white);color:var(--ink)}
+button{font:inherit;font-weight:700;border:2px solid var(--ink);border-radius:999px;padding:12px 18px;background:var(--ink);color:var(--white);cursor:pointer;letter-spacing:-.02em}
+button.ghost{background:transparent;color:var(--ink)}
+button:disabled{opacity:.5}
+.row{display:flex;gap:10px;align-items:center}.row>*{flex:1}
+.msg{min-height:20px;font-size:14px;font-weight:700;margin-top:10px}
+.msg.err{color:var(--warn)}.msg.ok{color:var(--ok)}
+.bar{height:10px;background:var(--frame);border-radius:999px;overflow:hidden;margin:6px 0 4px}
+.bar i{display:block;height:100%;background:var(--ink);width:0}
+.small{font-size:13px;font-weight:700}
+.ph{background:var(--frame);padding:10px;border-radius:8px;aspect-ratio:3/4;max-height:46vh;margin:0 auto}
+.ph img{width:100%;height:100%;object-fit:contain;display:block}
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.cats button{background:transparent;color:var(--ink);padding:14px 10px}
+.cats button.on{background:var(--ink);color:var(--white)}
+.cats button:last-child:nth-child(odd){grid-column:1/-1}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.thumbs button{padding:0;border-radius:6px;background:var(--frame);border:3px solid transparent;position:relative;aspect-ratio:3/4;overflow:hidden}
+.thumbs button img{width:100%;height:100%;object-fit:cover;display:block}
+.thumbs button.cur{border-color:var(--ink)}
+.thumbs b{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);color:#fff;font-size:10px;padding:2px 0;text-align:center}
+.toggle{display:flex;gap:10px;align-items:center;font-weight:700}.toggle input{width:24px;height:24px}
+[hidden]{display:none!important}
+</style>
+</head><body>
+<div class="wrap">
+  <h1>Annual sale categories</h1>
+  <p class="small" style="margin:0 0 14px">Tap a category: it saves and jumps to the next item. <a href="/admin">Pricing screen</a></p>
+
+  <section id="login" class="card" hidden>
+    <label for="who">Your name</label>
+    <input id="who" type="text" autocomplete="name">
+    <div class="row" style="margin-top:14px"><button id="go">Start</button></div>
+    <div class="msg" id="loginmsg"></div>
+  </section>
+
+  <section id="work" hidden>
+    <div class="small" id="progress"></div>
+    <div class="bar"><i id="barfill"></i></div>
+    <div class="card" id="itemcard" style="margin-top:10px">
+      <div class="small" id="itemno" style="margin-bottom:8px"></div>
+      <div class="ph"><img id="photo" alt="Sale item"></div>
+      <div class="cats" id="cats"></div>
+      <div class="msg" id="savemsg"></div>
+      <div class="row" style="margin-top:6px">
+        <button class="ghost" id="prev">Back</button>
+        <button class="ghost" id="skip">Skip</button>
+      </div>
+    </div>
+    <h2>All items</h2>
+    <label class="toggle" style="margin:0 0 10px"><input type="checkbox" id="onlyopen" checked> Only show items without a category</label>
+    <div class="thumbs" id="thumbs"></div>
+    <p class="small" style="margin-top:20px">Tagging as <span id="whoami"></span>. <a href="#" id="signout">Not you?</a></p>
+  </section>
+</div>
+<script>
+const CATS=[['jackets','Jackets'],['tops','Tops & Knitwear'],['bottoms','Bottoms'],['skirts','Skirts'],['dresses','Dresses']];
+const LABEL=Object.fromEntries(CATS);
+const SB='https://xotyvlaeuyujoqrtdxiy.supabase.co', H={apikey:'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu'};
+const $=id=>document.getElementById(id);
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+function msg(id,t,ok){const m=$(id);m.textContent=t||'';m.className='msg'+(t?(ok?' ok':' err'):'')}
+function show(id){['login','work'].forEach(s=>$(s).hidden=s!==id)}
+// Saving goes through /api/admin (only reachable after the sale site password).
+async function api(body){
+  const r=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok){let m='Could not save, try again';try{m=(await r.json()).error||m}catch(e){}throw new Error(m)}
+}
+let WHO=null, ITEMS=[], INFO={}, idx=0;
+const tagged=p=>INFO[p]&&INFO[p].category;
+CATS.forEach(([v,l])=>{const b=document.createElement('button');b.type='button';b.dataset.c=v;b.textContent=l;b.onclick=()=>pick(v);$('cats').append(b)});
+
+async function load(){
+  const [items,info]=await Promise.all([
+    fetch(SB+'/rest/v1/sale_items?select=photo&active=eq.true&order=created_at.asc,source_name.asc',{headers:H,cache:'no-store'}).then(r=>r.json()),
+    fetch(SB+'/rest/v1/sale_item_prices?select=photo,category,gender,new_price',{headers:H,cache:'no-store'}).then(r=>r.json())
+  ]);
+  ITEMS=items.map(i=>i.photo);INFO={};info.forEach(r=>INFO[r.photo]=r);
+}
+async function open(){
+  $('whoami').textContent=WHO;show('work');
+  try{await load()}catch(e){$('work').innerHTML='<div class="card"><p>Could not load the photos. Check your signal and refresh.</p></div>';return}
+  const f=ITEMS.findIndex(p=>!tagged(p));idx=f<0?0:f;draw();
+}
+function draw(){
+  const n=ITEMS.filter(tagged).length;
+  $('progress').textContent=n+' of '+ITEMS.length+' have a category';
+  $('barfill').style.width=(ITEMS.length?100*n/ITEMS.length:0)+'%';
+  const p=ITEMS[idx];$('itemcard').hidden=!p;if(!p)return;
+  const i=INFO[p]||{};
+  $('itemno').textContent='Item '+(idx+1)+' of '+ITEMS.length+(i.gender?' · '+(i.gender==='mens'?'Mens':'Womens'):'')+(i.new_price!=null?' · £'+(+i.new_price):'');
+  $('photo').src=p;
+  document.querySelectorAll('#cats button').forEach(b=>b.classList.toggle('on',b.dataset.c===i.category));
+  $('prev').disabled=idx===0;
+  const only=$('onlyopen').checked,t=$('thumbs');t.innerHTML='';
+  ITEMS.forEach((ph,k)=>{
+    if(only&&tagged(ph)&&k!==idx)return;
+    const b=document.createElement('button');b.className=k===idx?'cur':'';
+    const im=document.createElement('img');im.src=ph;im.loading='lazy';im.alt='';b.append(im);
+    const tag=document.createElement('b');tag.textContent=tagged(ph)?LABEL[INFO[ph].category]:'—';b.append(tag);
+    b.onclick=()=>{idx=k;draw();scrollTo({top:0,behavior:'smooth'})};t.append(b);
+  });
+}
+async function pick(c){
+  const p=ITEMS[idx];if(!p)return;
+  document.querySelectorAll('#cats button').forEach(b=>b.disabled=true);
+  try{
+    await api({action:'category',photo:p,category:c,by:WHO});
+    INFO[p]=Object.assign({},INFO[p],{photo:p,category:c});
+    msg('savemsg','Saved: '+LABEL[c],true);
+    for(let k=1;k<=ITEMS.length;k++){const j=(idx+k)%ITEMS.length;if(!tagged(ITEMS[j])){idx=j;break}}
+    draw();
+  }catch(e){msg('savemsg',e.message)}
+  document.querySelectorAll('#cats button').forEach(b=>b.disabled=false);
+}
+$('skip').onclick=()=>{idx=(idx+1)%ITEMS.length;msg('savemsg','');draw()};
+$('prev').onclick=()=>{if(idx>0){idx--;msg('savemsg','');draw()}};
+$('onlyopen').onchange=draw;
+$('go').onclick=()=>{const w=$('who').value.trim();if(!w)return msg('loginmsg','Type your name.');WHO=w;store.set('sale_admin_who',w);open()};
+$('who').onkeydown=e=>{if(e.key==='Enter')$('go').click()};
+$('signout').onclick=e=>{e.preventDefault();store.del('sale_admin_who');show('login')};
+WHO=store.get('sale_admin_who');if(WHO)open();else show('login');
+</script>
+</body></html>

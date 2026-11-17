@@ -24,6 +24,9 @@ module.exports = async function handler(req, res) {
   if (b.action === 'price') {
     fn = 'sale_save_item';
     args = { p: staffKey, p_photo: b.photo, p_old: b.old_price ?? null, p_new: b.new_price ?? null, p_gender: b.gender || null, p_by: String(b.by || '').slice(0, 60) };
+  } else if (b.action === 'category') {
+    fn = 'sale_set_category';
+    args = { p: staffKey, p_photo: b.photo, p_category: b.category || null, p_by: String(b.by || '').slice(0, 60) };
   } else if (b.action === 'slideshow') {
     fn = 'sale_set_slideshow';
     args = { p: staffKey, live: !!b.live };
