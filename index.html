@@ -2,12 +2,13 @@
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#00e0ff">
 <title>Y2K Vintage Annual Sale</title>
 <meta name="description" content="Y2K Vintage annual sale.">
 <meta property="og:title" content="Y2K Vintage Annual Sale">
 <style>
 /* Layout mimics the Canva "BF WEBSITE" mock: black Arial headline spanning the width, then photos */
-:root{--aqua:#66ddfb;--ink:#111111;--ph:#9fe6fb;--frame:#d4f6ff;--white:#ffffff}
+:root{--aqua:#00e0ff;--ink:#111111;--ph:#9fe6fb;--frame:#d4f6ff;--white:#ffffff}
 *{box-sizing:border-box}
 html{background:var(--aqua)}
 body{margin:0;background:var(--aqua);color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:15px;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
@@ -25,6 +26,8 @@ nav{position:sticky;top:0;z-index:2;background:var(--aqua)}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;font:inherit;font-weight:700;font-size:14px;letter-spacing:-.03em;border:2px solid var(--ink);background:transparent;color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer;text-transform:uppercase}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--aqua)}
+.chips.sub2{padding-top:0;flex-wrap:wrap;justify-content:center;gap:6px}.chips.sub2 .chip{margin:0}.chips.sub2 .chip{font-size:12px;padding:5px 11px;border-width:1.5px}
+.empty{text-align:center;font-weight:700;padding:30px 0;letter-spacing:-.03em}
 .chip:focus-visible{outline:2px solid var(--white);outline-offset:2px}
 section{padding-block:14px 4px}
 h2{font-weight:700;font-size:20px;letter-spacing:-.05em;margin:0 0 10px;color:var(--ink);text-transform:uppercase}
@@ -59,7 +62,8 @@ footer{padding-block:28px 40px;font-size:13px;font-weight:700;text-align:center;
   <p class="sub">27<sup>th</sup> - 29<sup>th</sup> NOVEMBER &nbsp;★&nbsp; Y2K VINTAGE STORES</p>
   <p class="peek">SNEAK PEEK BELOW</p>
 </header>
-<nav class="wrap" aria-label="Category"><div class="chips" id="cat"><button class="chip" data-g="womens" aria-pressed="true">Womens</button><button class="chip" data-g="mens" aria-pressed="false">Mens</button></div></nav>
+<nav class="wrap" aria-label="Filter"><div class="chips" id="cat"><button class="chip" data-g="all">All</button><button class="chip" data-g="womens">Womens</button><button class="chip" data-g="mens">Mens</button></div>
+<div class="chips sub2" id="type"><button class="chip" data-c="all">All</button><button class="chip" data-c="jackets">Jackets</button><button class="chip" data-c="tops">Tops &amp; Knitwear</button><button class="chip" data-c="bottoms">Bottoms &amp; Skirts</button><button class="chip" data-c="dresses">Dresses</button><button class="chip" data-c="accessories">Accessories</button></div></nav>
 <main class="wrap" id="cats" style="padding-top:4px"></main>
 <footer class="wrap">@Y2KXVINTAGE</footer>
 <div class="topbar"><a class="banner" id="early" href="/early-access">Want early access?</a><a class="banner lower" href="https://www.instagram.com/y2kxvintage/" target="_blank" rel="noopener">SOCIALS</a></div>
@@ -72,9 +76,15 @@ if(SALE_BL){var e=document.getElementById('early');if(e)e.remove()}
 <script>
 let DATA={items:[]};
 let PRICES=null; // filled from Supabase when prices are switched on in /admin
-let GENDERS={}; // photo -> 'womens' | 'mens' (set in /admin). Untagged photos show in both.
-let CAT=/mens$/.test(location.hash)&&!/womens$/.test(location.hash)?'mens':'womens';
-document.querySelectorAll('#cat .chip').forEach(b=>b.onclick=()=>{CAT=b.dataset.g;try{history.replaceState(null,'','#'+CAT)}catch(e){}render()});
+let GENDERS={}; // photo -> 'womens' | 'mens' (set in /admin). Untagged photos show under both.
+let TYPES={};   // photo -> 'jackets' | 'tops' | 'bottoms' | 'dresses' | 'accessories' (set in /admin-categories).
+// Filters: row 1 All/Womens/Mens, row 2 All/categories. Kept in the link, e.g. #womens/jackets.
+let [CAT,TYPE]=(decodeURIComponent(location.hash.slice(1))||'all/all').split('/');
+if(!['all','womens','mens'].includes(CAT))CAT='all';
+if(!['all','jackets','tops','bottoms','dresses','accessories'].includes(TYPE))TYPE='all';
+function setHash(){try{history.replaceState(null,'',CAT==='all'&&TYPE==='all'?location.pathname+location.search:'#'+CAT+'/'+TYPE)}catch(e){}}
+document.querySelectorAll('#cat .chip').forEach(b=>b.onclick=()=>{CAT=b.dataset.g;setHash();render()});
+document.querySelectorAll('#type .chip').forEach(b=>b.onclick=()=>{TYPE=b.dataset.c;setHash();render()});
 function photoSrc(p){return p.startsWith('http')||p.startsWith('/')?p:'/'+p}
 function money(v){v=+v;return '£'+(v%1?v.toFixed(2):v)}
 function render(){
@@ -84,7 +94,19 @@ function render(){
   const key=p=>p.replace(/^\//,'');
   const g=document.createElement('div');g.className='grid';
   document.querySelectorAll('#cat .chip').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.g===CAT)));
-  DATA.items.filter(i=>i.active!==false&&i.photo&&(!GENDERS[key(i.photo)]||GENDERS[key(i.photo)]===CAT)).forEach(i=>{
+  // Mens only has Jackets and Tops & Knitwear, so the other category buttons are hidden there.
+  const MENS_TYPES=['all','jackets','tops'];
+  if(CAT==='mens'&&!MENS_TYPES.includes(TYPE)){TYPE='all';setHash()}
+  document.querySelectorAll('#type .chip').forEach(b=>{b.hidden=CAT==='mens'&&!MENS_TYPES.includes(b.dataset.c);b.setAttribute('aria-pressed',String(b.dataset.c===TYPE))});
+  const list=DATA.items.filter(i=>{
+    if(i.active===false||!i.photo)return false;
+    const k=key(i.photo);
+    if(CAT!=='all'&&GENDERS[k]&&GENDERS[k]!==CAT)return false;
+    if(TYPE!=='all'&&TYPES[k]!==TYPE)return false;
+    return true;
+  });
+  if(!list.length&&DATA.items.length){const e=document.createElement('p');e.className='empty';e.textContent='MORE COMING SOON.';main.appendChild(e);return}
+  list.forEach(i=>{
     const d=document.createElement('div');d.className='ph';
     const im=document.createElement('img');im.src=photoSrc(i.photo);im.alt='Sale piece';im.loading='lazy';d.appendChild(im);
     const pr=PRICES&&PRICES[key(i.photo)];
@@ -116,9 +138,9 @@ Promise.all([
 // Prices: only shown once they are switched on in /admin.
 (function(){
   var SB='https://xotyvlaeuyujoqrtdxiy.supabase.co',H={apikey:'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu','Content-Type':'application/json'};
-  // Womens/Mens tags are always used for the category switch.
-  fetch(SB+'/rest/v1/sale_item_prices?select=photo,gender&gender=not.is.null',{headers:H}).then(r=>r.json()).then(rows=>{
-    GENDERS={};rows.forEach(r=>GENDERS[r.photo]=r.gender);if(DATA.items.length)render();
+  // Womens/Mens and category tags are always used for the filters.
+  fetch(SB+'/rest/v1/sale_item_prices?select=photo,gender,category',{headers:H}).then(r=>r.json()).then(rows=>{
+    GENDERS={};TYPES={};rows.forEach(r=>{if(r.gender)GENDERS[r.photo]=r.gender;if(r.category)TYPES[r.photo]=r.category});if(DATA.items.length)render();
   }).catch(()=>{});
   fetch(SB+'/rest/v1/rpc/sale_admin_status',{method:'POST',headers:H,body:'{}'}).then(r=>r.json()).then(s=>{
     if(!s||!s.slideshow_live)return;
