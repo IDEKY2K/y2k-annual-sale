@@ -93,7 +93,10 @@ function render(){
   const key=p=>p.replace(/^\//,'');
   const g=document.createElement('div');g.className='grid';
   document.querySelectorAll('#cat .chip').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.g===CAT)));
-  document.querySelectorAll('#type .chip').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.c===TYPE)));
+  // Mens only has Jackets and Tops & Knitwear, so the other category buttons are hidden there.
+  const MENS_TYPES=['all','jackets','tops'];
+  if(CAT==='mens'&&!MENS_TYPES.includes(TYPE)){TYPE='all';setHash()}
+  document.querySelectorAll('#type .chip').forEach(b=>{b.hidden=CAT==='mens'&&!MENS_TYPES.includes(b.dataset.c);b.setAttribute('aria-pressed',String(b.dataset.c===TYPE))});
   const list=DATA.items.filter(i=>{
     if(i.active===false||!i.photo)return false;
     const k=key(i.photo);
