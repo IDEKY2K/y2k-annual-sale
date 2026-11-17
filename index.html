@@ -33,6 +33,17 @@ h2{font-weight:700;font-size:20px;letter-spacing:-.05em;margin:0 0 10px;color:va
 .ph{aspect-ratio:3/4;background:var(--frame);padding:10px;border-radius:6px;overflow:hidden}
 .ph:empty::before{content:"";display:block;width:100%;height:100%;background:var(--ph)}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
+/* Price slideshow (only when switched on in /admin) */
+.show{position:relative;margin-bottom:22px}
+.track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;gap:16px}
+.track::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:center;max-width:100%}
+.slide .ph{max-width:min(460px,calc(56vh * 3 / 4));margin:0 auto}
+.price{display:flex;justify-content:center;align-items:baseline;gap:14px;margin-top:10px;font-weight:700;letter-spacing:-.05em}
+.price s{font-size:clamp(20px,6vw,28px);text-decoration-thickness:3px;opacity:.75}
+.price b{font-size:clamp(34px,11vw,52px)}
+.nav{display:flex;justify-content:center;align-items:center;gap:16px;margin-top:8px;font-weight:700}
+.nav button{font:inherit;font-weight:700;font-size:20px;width:44px;height:44px;border-radius:999px;border:2px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
 footer{padding-block:28px 40px;font-size:13px;font-weight:700;text-align:center;letter-spacing:-.02em}
 .topbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:3;display:flex;gap:10px;max-width:calc(100vw - 24px)}
 .topbar .banner{box-shadow:0 6px 20px rgba(0,0,0,.18)}
@@ -62,16 +73,52 @@ if(SALE_BL){var e=document.getElementById('early');if(e)e.remove()}
 </script>
 <script>
 let DATA={items:[]};
+let PRICES=null; // filled from Supabase when the price slideshow is switched on in /admin
+function photoSrc(p){return p.startsWith('http')||p.startsWith('/')?p:'/'+p}
+function money(v){v=+v;return '£'+(v%1?v.toFixed(2):v)}
 function render(){
-  // One photo grid, no categories (for now). Each item: {photo, active}.
   const main=document.getElementById('cats');main.innerHTML='';
+  const items=DATA.items.filter(i=>i.active!==false&&i.photo);
+  const key=p=>p.replace(/^\//,'');
+  const priced=PRICES?items.filter(i=>PRICES[key(i.photo)]):[];
+  if(priced.length)main.appendChild(slideshow(priced.map(i=>({photo:i.photo,...PRICES[key(i.photo)]}))));
+  // Everything without a price (or everything, when the slideshow is off) stays in the photo grid.
+  const rest=items.filter(i=>!priced.includes(i));
+  if(!rest.length)return;
   const g=document.createElement('div');g.className='grid';
-  DATA.items.filter(i=>i.active!==false).forEach(i=>{
+  rest.forEach(i=>{
     const d=document.createElement('div');d.className='ph';
-    if(i.photo){const im=document.createElement('img');im.src=i.photo.startsWith('http')||i.photo.startsWith('/')?i.photo:'/'+i.photo;im.alt='Sale piece';im.loading='lazy';d.appendChild(im)}
+    const im=document.createElement('img');im.src=photoSrc(i.photo);im.alt='Sale piece';im.loading='lazy';d.appendChild(im);
     g.appendChild(d);
   });
   main.appendChild(g);
+}
+function slideshow(list){
+  const wrap=document.createElement('div');wrap.className='show';
+  const track=document.createElement('div');track.className='track';
+  list.forEach((it,n)=>{
+    const sl=document.createElement('div');sl.className='slide';
+    const f=document.createElement('div');f.className='ph';
+    const im=document.createElement('img');im.src=photoSrc(it.photo);im.alt='Sale piece';if(n>1)im.loading='lazy';f.appendChild(im);
+    const pr=document.createElement('div');pr.className='price';
+    if(it.old_price!=null&&+it.old_price>+it.new_price){const o=document.createElement('s');o.textContent=money(it.old_price);pr.appendChild(o)}
+    const nw=document.createElement('b');nw.textContent=money(it.new_price);pr.appendChild(nw);
+    sl.append(f,pr);track.appendChild(sl);
+  });
+  const nav=document.createElement('div');nav.className='nav';
+  const prev=document.createElement('button');prev.textContent='‹';prev.setAttribute('aria-label','Previous');
+  const next=document.createElement('button');next.textContent='›';next.setAttribute('aria-label','Next');
+  const count=document.createElement('span');
+  nav.append(prev,count,next);wrap.append(track,nav);
+  const cur=()=>Math.round(track.scrollLeft/(track.clientWidth+16));
+  const go=i=>{i=(i+list.length)%list.length;track.scrollTo({left:i*(track.clientWidth+16),behavior:'smooth'})};
+  const upd=()=>{count.textContent=(cur()+1)+' / '+list.length};
+  track.addEventListener('scroll',()=>requestAnimationFrame(upd));upd();
+  let paused=false,t=null;const stop=()=>{paused=true};
+  prev.onclick=()=>{stop();go(cur()-1)};next.onclick=()=>{stop();go(cur()+1)};
+  track.addEventListener('touchstart',stop,{passive:true});track.addEventListener('pointerdown',stop);
+  if(list.length>1)t=setInterval(()=>{if(!paused&&!document.hidden)go(cur()+1)},3500);
+  return wrap;
 }
 function fitHeadline(){
   const h=document.getElementById('headline');if(!h)return;
@@ -83,6 +130,16 @@ function fitHeadline(){
 fitHeadline();addEventListener('resize',fitHeadline);
 fetch('/items.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;render()})
   .catch(()=>{document.getElementById('cats').textContent='Could not load the sale. Please refresh.'});
+// Prices: only shown once the slideshow is switched on in /admin.
+(function(){
+  var SB='https://xotyvlaeuyujoqrtdxiy.supabase.co',H={apikey:'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu','Content-Type':'application/json'};
+  fetch(SB+'/rest/v1/rpc/sale_admin_status',{method:'POST',headers:H,body:'{}'}).then(r=>r.json()).then(s=>{
+    if(!s||!s.slideshow_live)return;
+    return fetch(SB+'/rest/v1/sale_item_prices?select=photo,old_price,new_price&new_price=not.is.null',{headers:H}).then(r=>r.json()).then(rows=>{
+      PRICES={};rows.forEach(r=>PRICES[r.photo]=r);if(DATA.items.length)render();
+    });
+  }).catch(()=>{});
+})();
 </script>
 <script>
 // Visit counter: QR codes open /qr/<tag> (e.g. /qr/poster). One row per page open in Supabase sale_visits.
