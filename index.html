@@ -132,7 +132,7 @@ fitHeadline();addEventListener('resize',fitHeadline);
 // Only the official photos added in /admin are shown (the old sneak-peek photos in items.json were removed 17 Nov).
 Promise.all([
   Promise.resolve(null),
-  fetch('https://xotyvlaeuyujoqrtdxiy.supabase.co/rest/v1/sale_items?select=photo&active=eq.true&order=created_at.asc,source_name.asc',{headers:{apikey:'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu'}}).then(r=>r.ok?r.json():[]).catch(()=>[])
+  fetch('https://xotyvlaeuyujoqrtdxiy.supabase.co/rest/v1/sale_items?select=photo&active=eq.true&order=sort_order.asc.nullslast,created_at.asc,source_name.asc',{headers:{apikey:'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu'}}).then(r=>r.ok?r.json():[]).catch(()=>[])
 ]).then(([d,off])=>{DATA={items:off.map(o=>({photo:o.photo,active:true}))};render()})
   .catch(()=>{document.getElementById('cats').textContent='Could not load the sale. Please refresh.'});
 // Prices: only shown once they are switched on in /admin.

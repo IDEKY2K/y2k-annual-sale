@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Sale order</title>
+<style>
+/* Staff screen to set the order photos appear on the sale page. Same look as /admin. Behind the site password. */
+:root{--aqua:#00e0ff;--ink:#111;--frame:#d4f6ff;--white:#fff;--ok:#0a7a3d;--warn:#b3261e}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--aqua);color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:16px}
+.wrap{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-left,0px)) 60px}
+h1{font-size:26px;letter-spacing:-.05em;margin:6px 0 4px}
+a{color:inherit}
+.small{font-size:13px;font-weight:700}
+.card{background:var(--white);border-radius:14px;padding:16px}
+label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
+input[type=text]{width:100%;font:inherit;font-size:20px;padding:12px;border:2px solid var(--ink);border-radius:10px}
+button{font:inherit;font-weight:700;border:2px solid var(--ink);border-radius:999px;padding:12px 18px;background:var(--ink);color:var(--white);cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.chips button{background:transparent;color:var(--ink);padding:6px 12px;font-size:13px;text-transform:uppercase}
+.chips button[aria-pressed=true]{background:var(--ink);color:var(--aqua)}
+.msg{min-height:20px;font-size:14px;font-weight:700;margin:6px 0}
+.msg.err{color:var(--warn)}.msg.ok{color:var(--ok)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;user-select:none;-webkit-user-select:none}
+.it{position:relative;aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:var(--frame);border:3px solid transparent;-webkit-touch-callout:none}
+.it img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.it b{position:absolute;left:4px;top:4px;background:var(--ink);color:var(--aqua);font-size:11px;padding:2px 6px;border-radius:999px}
+.it.drag{opacity:.35;border-color:var(--ink)}
+.ghost{position:fixed;z-index:10;pointer-events:none;width:96px;aspect-ratio:3/4;border-radius:8px;overflow:hidden;border:3px solid var(--ink);box-shadow:0 8px 24px rgba(0,0,0,.35);transform:translate(-50%,-60%) scale(1.08)}
+.ghost img{width:100%;height:100%;object-fit:cover}
+[hidden]{display:none!important}
+</style>
+</head><body>
+<div class="wrap">
+  <h1>Sale page order</h1>
+  <p class="small" style="margin:0 0 10px">Press and hold a photo, then drag it to where it should go. It saves when you let go. The sale page shows photos in this order. <a href="/admin">Pricing</a> · <a href="/admin-categories">Categories</a></p>
+
+  <section id="login" class="card" hidden>
+    <label for="who">Your name</label>
+    <input id="who" type="text" autocomplete="name">
+    <div style="margin-top:14px"><button id="go">Start</button></div>
+    <div class="msg" id="loginmsg"></div>
+  </section>
+
+  <section id="work" hidden>
+    <div class="chips" id="gf"></div>
+    <div class="chips" id="cf"></div>
+    <div class="msg" id="savemsg"></div>
+    <div class="grid" id="grid"></div>
+  </section>
+</div>
+<script>
+const SB='https://xotyvlaeuyujoqrtdxiy.supabase.co', H={apikey:'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu'};
+const GENS=[['womens','Womens'],['mens','Mens']];
+const CATS=[['all','All'],['jackets','Jackets'],['tops','Tops & Knitwear'],['bottoms','Bottoms & Skirts'],['dresses','Dresses'],['accessories','Accessories']];
+const MENS_CATS=['all','jackets','tops'];
+const $=id=>document.getElementById(id);
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+function msg(t,ok){const m=$('savemsg');m.textContent=t||'';m.className='msg'+(t?(ok?' ok':' err'):'')}
+let WHO=null, ITEMS=[], INFO={}, G='womens', C='all';
+
+function chips(){
+  $('gf').innerHTML='';$('cf').innerHTML='';
+  GENS.forEach(([v,l])=>{const b=document.createElement('button');b.textContent=l;b.setAttribute('aria-pressed',String(v===G));b.onclick=()=>{G=v;if(G==='mens'&&!MENS_CATS.includes(C))C='all';chips();draw()};$('gf').append(b)});
+  CATS.forEach(([v,l])=>{if(G==='mens'&&!MENS_CATS.includes(v))return;const b=document.createElement('button');b.textContent=l;b.setAttribute('aria-pressed',String(v===C));b.onclick=()=>{C=v;chips();draw()};$('cf').append(b)});
+}
+// Same rules as the sale page: untagged Womens/Mens shows under both; untagged category only under All.
+function visible(p){const i=INFO[p]||{};if(i.gender&&i.gender!==G)return false;if(C!=='all'&&i.category!==C)return false;return true}
+function draw(){
+  const g=$('grid');g.innerHTML='';let n=0;
+  ITEMS.forEach(p=>{if(!visible(p))return;n++;
+    const d=document.createElement('div');d.className='it';d.dataset.p=p;
+    const im=document.createElement('img');im.src=p;im.alt='';im.loading='lazy';im.draggable=false;d.append(im);
+    const b=document.createElement('b');b.textContent=n;d.append(b);g.append(d)});
+  if(!n)g.innerHTML='<p class="small">No photos here yet.</p>';
+}
+async function load(){
+  const [items,info]=await Promise.all([
+    fetch(SB+'/rest/v1/sale_items?select=photo&active=eq.true&order=sort_order.asc.nullslast,created_at.asc,source_name.asc',{headers:H,cache:'no-store'}).then(r=>r.json()),
+    fetch(SB+'/rest/v1/sale_item_prices?select=photo,category,gender',{headers:H,cache:'no-store'}).then(r=>r.json())
+  ]);
+  ITEMS=items.map(i=>i.photo);INFO={};info.forEach(r=>INFO[r.photo]=r);
+}
+async function save(){
+  msg('Saving…',true);
+  try{
+    const r=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'order',photos:ITEMS,by:WHO})});
+    if(!r.ok){let m='Could not save, try again';try{m=(await r.json()).error||m}catch(e){}throw new Error(m)}
+    msg('Saved',true);
+  }catch(e){msg(e.message)}
+}
+// After a drag inside a filtered view, put the visible photos back into the same slots of the full list in their new order.
+function applyOrder(){
+  const shown=[...$('grid').children].map(d=>d.dataset.p).filter(Boolean);
+  const set=new Set(shown);let k=0;
+  ITEMS=ITEMS.map(p=>set.has(p)?shown[k++]:p);
+}
+
+// Press-and-hold drag (works with finger or mouse). A quick swipe still scrolls the page.
+let hold=null, drag=null, ghost=null, sx=0, sy=0, lastY=0, scrollTimer=null;
+const grid=$('grid');
+grid.addEventListener('pointerdown',e=>{
+  const it=e.target.closest('.it');if(!it||e.button>0)return;
+  sx=e.clientX;sy=e.clientY;
+  hold=setTimeout(()=>start(it,e.clientX,e.clientY),e.pointerType==='mouse'?120:300);
+});
+function start(it,x,y){
+  hold=null;drag=it;it.classList.add('drag');
+  ghost=document.createElement('div');ghost.className='ghost';ghost.append(it.querySelector('img').cloneNode());document.body.append(ghost);
+  move(x,y);if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}
+  scrollTimer=setInterval(()=>{const h=innerHeight;if(lastY<70)scrollBy(0,-12);else if(lastY>h-70)scrollBy(0,12)},16);
+}
+function move(x,y){
+  lastY=y;ghost.style.left=x+'px';ghost.style.top=y+'px';
+  const el=document.elementFromPoint(x,y),t=el&&el.closest('.it');
+  if(!t||t===drag)return;
+  const r=t.getBoundingClientRect(),after=x>r.left+r.width/2;
+  grid.insertBefore(drag,after?t.nextSibling:t);
+  [...grid.children].forEach((d,i)=>{const b=d.querySelector('b');if(b)b.textContent=i+1});
+}
+addEventListener('pointermove',e=>{
+  if(hold&&Math.hypot(e.clientX-sx,e.clientY-sy)>8){clearTimeout(hold);hold=null}
+  if(drag)move(e.clientX,e.clientY);
+});
+document.addEventListener('touchmove',e=>{if(drag)e.preventDefault()},{passive:false});
+grid.addEventListener('contextmenu',e=>e.preventDefault());
+function end(){
+  if(hold){clearTimeout(hold);hold=null}
+  if(!drag)return;
+  clearInterval(scrollTimer);drag.classList.remove('drag');ghost.remove();drag=null;ghost=null;
+  const before=ITEMS.join('|');applyOrder();if(ITEMS.join('|')!==before)save();
+}
+addEventListener('pointerup',end);addEventListener('pointercancel',end);
+
+async function open(){
+  $('login').hidden=true;$('work').hidden=false;chips();
+  try{await load()}catch(e){msg('Could not load the photos. Check your signal and refresh.');return}
+  draw();
+}
+$('go').onclick=()=>{const w=$('who').value.trim();if(!w){$('loginmsg').textContent='Type your name.';return}WHO=w;store.set('sale_admin_who',w);open()};
+$('who').onkeydown=e=>{if(e.key==='Enter')$('go').click()};
+WHO=store.get('sale_admin_who');if(WHO)open();else $('login').hidden=false;
+</script>
+</body></html>
