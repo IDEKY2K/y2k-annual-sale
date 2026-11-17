@@ -30,17 +30,10 @@ async function sha256(s: string) {
 }
 
 // ---- The email. Wording is exactly as Sameer wrote it (17 Nov). Style follows sale.y2kxvintage.com:
-// aqua background, black Arial bold, photos in lighter-blue frames. Email-safe: tables + inline styles.
-const AQUA = "#66ddfb", FRAME = "#d4f6ff", INK = "#111111";
-function email(photos: string[]) {
+// aqua background, black Arial bold, white bubbles. No photos (user, 17 Nov). Email-safe: tables + inline styles.
+const AQUA = "#66ddfb", INK = "#111111";
+function email() {
   const subject = "You’re on the list! Y2K Vintage Early Access Sip ’n’ Shop";
-  const ph = (src: string) =>
-    `<td width="50%" style="padding:6px;vertical-align:top"><div style="background:${FRAME};padding:7px;border-radius:6px"><img src="${src}" width="252" alt="Sale piece" style="display:block;width:100%;max-width:252px;height:auto;border:0;border-radius:2px"></div></td>`;
-  const grid = photos.length >= 2
-    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:22px 0 6px">` +
-      Array.from({ length: Math.floor(photos.length / 2) }, (_, i) => `<tr>${ph(photos[i * 2])}${ph(photos[i * 2 + 1])}</tr>`).join("") +
-      `</table>`
-    : "";
   const p = (t: string, extra = "") => `<p style="margin:0 0 14px;font-size:16px;line-height:1.45;font-weight:700;letter-spacing:-0.3px;color:${INK}${extra}">${t}</p>`;
   const store = (name: string, addr: string) =>
     `<td width="50%" style="padding:6px;vertical-align:top"><div style="background:#ffffff;border-radius:14px;padding:14px 14px 12px">
@@ -62,27 +55,13 @@ ${p("Come have a sip and shop the sale before it opens to everyone. All vintage 
 ${store("Brick Lane", "214 Brick Lane,<br>London E1 6SA")}
 ${store("Notting Hill", "217 Portobello Road,<br>London W11 1LU")}
 </tr></table></td></tr>
-<tr><td>${grid}</td></tr>
-<tr><td style="padding:12px 6px 0">
+<tr><td style="padding:18px 6px 0">
 ${p("See you Thursday!")}
 ${p("Y2K Vintage x", ";margin-bottom:26px")}
 <div style="font-size:13px;font-weight:700;letter-spacing:-0.2px;color:${INK};text-align:center">@Y2KXVINTAGE</div>
 </td></tr>
 </table></td></tr></table></body></html>`;
   return { subject, html };
-}
-
-// Four official sale photos for the email (first womens + mens pieces added in /admin).
-async function emailPhotos() {
-  const q = await db.from("sale_items").select("photo").eq("active", true).order("created_at").order("source_name").limit(40);
-  const all = (q.data || []).map((r: any) => String(r.photo)).filter((s) => s.startsWith("https://"));
-  const g = await db.from("sale_item_prices").select("photo,gender").not("gender", "is", null);
-  const gender: Record<string, string> = {};
-  for (const r of g.data || []) gender[(r as any).photo] = (r as any).gender;
-  const key = (u: string) => u.replace(/^\//, "");
-  const w = all.filter((u) => gender[key(u)] === "womens"), m = all.filter((u) => gender[key(u)] === "mens");
-  const pick = [w[0], m[0], w[1], m[1]].filter(Boolean) as string[];
-  return pick.length === 4 ? pick : all.slice(0, 4);
 }
 
 async function graphToken() {
@@ -112,7 +91,7 @@ Deno.serve(async (req) => {
   const b = await req.json().catch(() => ({} as any));
 
   if (b.preview) {
-    const m = email(await emailPhotos());
+    const m = email();
     return new Response(m.html, { headers: { ...H, "Content-Type": "text/html; charset=utf-8" } });
   }
 
@@ -150,7 +129,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    await send(mail, [first, last].filter(Boolean).join(" "), email(await emailPhotos()));
+    await send(mail, [first, last].filter(Boolean).join(" "), email());
     await db.from("early_access_signups").update({ email_status: "sent", email_sent_at: new Date().toISOString(), email_error: null }).eq("id", id);
   } catch (e) {
     // The sign-up is still saved; the email can be re-sent later.
