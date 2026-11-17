@@ -38,6 +38,10 @@ button:disabled{opacity:.5}
 .toggle{display:flex;gap:10px;align-items:center;font-weight:700}
 .toggle input{width:24px;height:24px}
 [hidden]{display:none!important}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.seg button{background:transparent;color:var(--ink)}
+.seg button.on{background:var(--ink);color:var(--white)}
+.thumbs i{position:absolute;left:3px;top:3px;background:#fff;color:#111;font-style:normal;font-size:10px;font-weight:700;border-radius:4px;padding:1px 4px}
 </style>
 </head><body>
 <div class="wrap">
@@ -54,15 +58,23 @@ button:disabled{opacity:.5}
 
   <!-- Pricing: one item at a time -->
   <section id="work" hidden>
+    <div class="card" style="margin-bottom:14px">
+      <b>Add photos</b>
+      <p class="small" style="margin:6px 0 10px">Pick photos from the OneDrive folder (you can select them all every time: photos already added are skipped, never duplicated).</p>
+      <input type="file" id="files" accept="image/*,.heic,.heif" multiple hidden>
+      <div class="row"><button id="addbtn">Add photos</button></div>
+      <div class="msg" id="addmsg"></div>
+    </div>
     <div class="small" id="progress">0 of 0 priced</div>
     <div class="bar"><i id="barfill"></i></div>
-    <div class="card" style="margin-top:10px">
+    <div class="card" id="pricecard" style="margin-top:10px">
       <div class="small" id="itemno" style="margin-bottom:8px"></div>
       <div class="ph"><img id="photo" alt="Sale item"></div>
       <div class="prices" style="margin-top:12px">
         <div><label for="oldp">Old price</label><div class="pound"><span>£</span><input id="oldp" inputmode="decimal" autocomplete="off" enterkeyhint="next"></div></div>
         <div><label for="newp">Sale price</label><div class="pound"><span>£</span><input id="newp" inputmode="decimal" autocomplete="off" enterkeyhint="done"></div></div>
       </div>
+      <div class="seg" id="gender"><button type="button" data-g="womens">Womens</button><button type="button" data-g="mens">Mens</button></div>
       <div class="msg" id="savemsg"></div>
       <div class="row" style="margin-top:6px">
         <button class="ghost" id="prev">Back</button>
@@ -97,6 +109,7 @@ async function rpc(fn,args){
 async function saveApi(body){
   const r=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   if(!r.ok){let m='Could not save, try again';try{m=(await r.json()).error||m}catch(e){}throw new Error(m)}
+  try{return await r.json()}catch(e){return {}}
 }
 const $=id=>document.getElementById(id);
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
@@ -124,29 +137,38 @@ $('signout').onclick=e=>{e.preventDefault();store.del('sale_admin_who');$('who')
 
 async function openWork(){
   $('whoami').textContent=WHO;show('work');
-  let items,prices;
-  try{[items,prices]=await Promise.all([
+  await loadItems();
+  const firstOpen=ITEMS.findIndex(p=>!priced(p));idx=firstOpen<0?0:firstOpen;
+  draw();
+}
+// Official photos added with the Add photos button (sale_items).
+async function loadItems(){
+  let items,prices,official;
+  try{[items,prices,official]=await Promise.all([
     fetch('/items.json',{cache:'no-store'}).then(r=>r.json()),
-    fetch(SB+'/rest/v1/sale_item_prices?select=photo,old_price,new_price,priced_by',{headers:H,cache:'no-store'}).then(r=>r.json())
+    fetch(SB+'/rest/v1/sale_item_prices?select=photo,old_price,new_price,gender,priced_by',{headers:H,cache:'no-store'}).then(r=>r.json()),
+    fetch(SB+'/rest/v1/sale_items?select=photo&active=eq.true&order=created_at.asc,source_name.asc',{headers:H,cache:'no-store'}).then(r=>r.json())
   ])}catch(e){
     // The sale site's password screen blocks the photos until this phone has unlocked the site once.
     $('work').innerHTML='<div class="card"><p>Could not load the photos. Check your signal and refresh.</p></div>';
     return;
   }
-  ITEMS=(items.items||[]).filter(i=>i.active!==false&&i.photo).map(i=>i.photo.replace(/^\//,''));
+  ITEMS=official.map(o=>o.photo); // only official photos (old sneak-peek photos removed 17 Nov)
   PRICES={};prices.forEach(p=>PRICES[p.photo]=p);
-  const firstOpen=ITEMS.findIndex(p=>!priced(p));idx=firstOpen<0?0:firstOpen;
-  draw();
 }
+const src=p=>/^https?:/.test(p)?p:'/'+p;
+let GENDER=null;
+function setGender(g){GENDER=g;document.querySelectorAll('#gender button').forEach(b=>b.classList.toggle('on',b.dataset.g===g))}
+document.querySelectorAll('#gender button').forEach(b=>b.onclick=()=>setGender(b.dataset.g));
 const priced=p=>PRICES[p]&&PRICES[p].new_price!=null;
 const money=v=>v==null?'':(+v%1?(+v).toFixed(2):String(+v));
 function draw(){
   const n=ITEMS.filter(priced).length;
   $('progress').textContent=n+' of '+ITEMS.length+' priced';
   $('barfill').style.width=(ITEMS.length?100*n/ITEMS.length:0)+'%';
-  const p=ITEMS[idx];if(!p)return;
+  const p=ITEMS[idx];$('pricecard').hidden=!p;if(!p){$('thumbs').innerHTML='';$('progress').textContent='No photos yet. Tap Add photos.';return}
   $('itemno').textContent='Item '+(idx+1)+' of '+ITEMS.length+(PRICES[p]&&PRICES[p].priced_by?' · last priced by '+PRICES[p].priced_by:'');
-  $('photo').src='/'+p;
+  $('photo').src=src(p);setGender(PRICES[p]&&PRICES[p].gender||null);
   $('oldp').value=money(PRICES[p]&&PRICES[p].old_price);
   $('newp').value=money(PRICES[p]&&PRICES[p].new_price);
   $('prev').disabled=idx===0;
@@ -155,8 +177,9 @@ function draw(){
   ITEMS.forEach((ph,i)=>{
     if(only&&priced(ph)&&i!==idx)return;
     const b=document.createElement('button');b.className=i===idx?'cur':'';b.title='Item '+(i+1);
-    const im=document.createElement('img');im.src='/'+ph;im.loading='lazy';im.alt='';b.append(im);
+    const im=document.createElement('img');im.src=src(ph);im.loading='lazy';im.alt='';b.append(im);
     const tag=document.createElement('b');tag.textContent=priced(ph)?'£'+money(PRICES[ph].new_price):'—';b.append(tag);
+    const gg=PRICES[ph]&&PRICES[ph].gender;if(gg){const gi=document.createElement('i');gi.textContent=gg==='mens'?'M':'W';b.append(gi)}
     b.onclick=()=>{idx=i;draw();scrollTo({top:0,behavior:'smooth'})};t.append(b);
   });
 }
@@ -170,12 +193,13 @@ $('save').onclick=async()=>{
   const o=parse($('oldp').value), s=parse($('newp').value);
   if(Number.isNaN(o)||Number.isNaN(s))return msg('savemsg','Prices must be numbers, e.g. 25 or 12.50');
   if(s==null)return msg('savemsg','Enter the sale price (or press Skip).');
+  if(!GENDER)return msg('savemsg','Choose Womens or Mens.');
   if(o!=null&&s>o&&!confirmed){confirmed=true;return msg('savemsg','Sale price is higher than the old price. Press Save again if that is right.')}
   confirmed=false;$('save').disabled=true;
   try{
     const p=ITEMS[idx];
-    await saveApi({action:'price',photo:p,old_price:o,new_price:s,by:WHO});
-    PRICES[p]={photo:p,old_price:o,new_price:s,priced_by:WHO};
+    await saveApi({action:'price',photo:p,old_price:o,new_price:s,gender:GENDER,by:WHO});
+    PRICES[p]={photo:p,old_price:o,new_price:s,gender:GENDER,priced_by:WHO};
     next();msg('savemsg','Saved.',true);$('oldp').focus();
   }catch(e){msg('savemsg',e.message)}
   $('save').disabled=false;
@@ -191,6 +215,38 @@ $('live').onchange=async()=>{
   const want=$('live').checked;
   try{await saveApi({action:'slideshow',live:want});msg('livemsg',want?'Prices are now showing on the sale site.':'Prices hidden on the sale site.',true)}
   catch(e){$('live').checked=!want;msg('livemsg',e.message)}
+};
+// ---- Add photos: shrink each photo on the phone, then upload. Already-added file names are skipped.
+function shrink(file){
+  return new Promise((ok,bad)=>{
+    const url=URL.createObjectURL(file),img=new Image();
+    img.onload=()=>{const m=1400,sc=Math.min(1,m/Math.max(img.naturalWidth,img.naturalHeight));
+      const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*sc);c.height=Math.round(img.naturalHeight*sc);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
+      ok(c.toDataURL('image/jpeg',0.82).split(',')[1])};
+    img.onerror=()=>{URL.revokeObjectURL(url);bad(new Error('cannot read'))};
+    img.src=url;
+  });
+}
+$('addbtn').onclick=()=>$('files').click();
+$('files').onchange=async()=>{
+  const files=[...$('files').files];$('files').value='';if(!files.length)return;
+  $('addbtn').disabled=true;
+  let added=0,skipped=0,failed=[];
+  try{
+    const ex=await saveApi({action:'check',names:files.map(f=>f.name)});
+    const have=new Set((ex.existing||[]));
+    const todo=files.filter(f=>{if(have.has(f.name.trim().toLowerCase())){skipped++;return false}return true});
+    for(let i=0;i<todo.length;i++){
+      msg('addmsg','Adding '+(i+1)+' of '+todo.length+'…'+(skipped?' ('+skipped+' already added, skipped)':''),true);
+      try{const data=await shrink(todo[i]);const r=await saveApi({action:'upload',name:todo[i].name,data,by:WHO});
+        if(r.status==='duplicate')skipped++;else added++;}
+      catch(e){failed.push(todo[i].name)}
+    }
+  }catch(e){failed.push(e.message)}
+  msg('addmsg',added+' added, '+skipped+' already there (skipped)'+(failed.length?', '+failed.length+' failed: '+failed.slice(0,5).join(', '):'')+'.',!failed.length);
+  $('addbtn').disabled=false;
+  await loadItems();const f=ITEMS.findIndex(p=>!priced(p));idx=f<0?0:f;draw();
 };
 start();
 </script>

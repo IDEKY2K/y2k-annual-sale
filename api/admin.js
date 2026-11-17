@@ -1,4 +1,4 @@
-// Saves sale prices and the slideshow on/off switch for /admin.
+// Saves sale prices (+ Womens/Mens), the show-prices switch, and official photo uploads for /admin.
 // Only reachable after the sale site password: middleware.js blocks /api/admin without the unlock cookie.
 // It calls the Supabase functions with a key derived from the site password hash; Supabase stores only a hash of that key.
 const crypto = require('crypto');
@@ -12,9 +12,18 @@ module.exports = async function handler(req, res) {
   const staffKey = crypto.createHash('sha256').update(PASS_HASH + ':cookie-v1').digest('hex');
   const b = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
   let fn, args;
+  if (b.action === 'upload' || b.action === 'check') {
+    // Official photos: forwarded to the Supabase "sale-upload" function, which stores the photo
+    // and skips any file name that was already added (so nothing is duplicated).
+    const r = await fetch('https://xotyvlaeuyujoqrtdxiy.supabase.co/functions/v1/sale-upload', { method: 'POST',
+      headers: { apikey: KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(b.action === 'check' ? { key: staffKey, check: b.names } : { key: staffKey, name: b.name, data: b.data, by: b.by }) });
+    let d = {}; try { d = await r.json() } catch (e) {}
+    return res.status(r.ok ? 200 : 502).json(r.ok ? d : { error: d.error || 'Upload failed' });
+  }
   if (b.action === 'price') {
-    fn = 'sale_save_price';
-    args = { p: staffKey, p_photo: b.photo, p_old: b.old_price ?? null, p_new: b.new_price ?? null, p_by: String(b.by || '').slice(0, 60) };
+    fn = 'sale_save_item';
+    args = { p: staffKey, p_photo: b.photo, p_old: b.old_price ?? null, p_new: b.new_price ?? null, p_gender: b.gender || null, p_by: String(b.by || '').slice(0, 60) };
   } else if (b.action === 'slideshow') {
     fn = 'sale_set_slideshow';
     args = { p: staffKey, live: !!b.live };
