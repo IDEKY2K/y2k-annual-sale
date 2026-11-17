@@ -2,7 +2,8 @@
 // The sign-up page at sale.y2kxvintage.com/early-access posts here. This function:
 //  1. saves the sign-up into Supabase table early_access_signups (one row per email address),
 //  2. sends the confirmation email from hello@y2kxvintage.com through Microsoft Graph,
-//     using the same Microsoft app (MS_TENANT_ID / MS_CLIENT_ID / MS_CLIENT_SECRET) as Britney Bot.
+//     using its own Microsoft app (secrets HELLO_MS_TENANT_ID / HELLO_MS_CLIENT_ID / HELLO_MS_CLIENT_SECRET),
+//     falling back to Britney Bot's app (MS_*) if those aren't set.
 // Britney Bot's own functions are not touched.
 // Protection against misuse: hidden "website" honeypot field, max 5 sign-ups per hour per connection,
 // and an email address only ever gets the confirmation once.
@@ -64,10 +65,12 @@ ${p("Y2K Vintage x", ";margin-bottom:26px")}
   return { subject, html };
 }
 
+// Uses the hello@ Microsoft app (HELLO_MS_* secrets) when they are set, otherwise Britney Bot's app (MS_*).
+const ms = (k: string) => env("HELLO_MS_" + k) || env("MS_" + k);
 async function graphToken() {
-  const r = await fetch(`https://login.microsoftonline.com/${env("MS_TENANT_ID")}/oauth2/v2.0/token`, {
+  const r = await fetch(`https://login.microsoftonline.com/${ms("TENANT_ID")}/oauth2/v2.0/token`, {
     method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ client_id: env("MS_CLIENT_ID"), client_secret: env("MS_CLIENT_SECRET"), grant_type: "client_credentials", scope: "https://graph.microsoft.com/.default" }),
+    body: new URLSearchParams({ client_id: ms("CLIENT_ID"), client_secret: ms("CLIENT_SECRET"), grant_type: "client_credentials", scope: "https://graph.microsoft.com/.default" }),
   });
   const j = await r.json();
   if (!j.access_token) throw new Error("Microsoft sign-in failed: " + (j.error_description || j.error || r.status));
