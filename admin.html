@@ -77,8 +77,8 @@ button:disabled{opacity:.5}
 
     <h2>Sale website</h2>
     <div class="card">
-      <label class="toggle" style="margin:0"><input type="checkbox" id="live"> Show the price slideshow on sale.y2kxvintage.com</label>
-      <p class="small" style="margin:10px 0 0">While this is off, the site keeps its normal photo grid and no prices are shown. Only items with a sale price appear in the slideshow.</p>
+      <label class="toggle" style="margin:0"><input type="checkbox" id="live"> Show prices on sale.y2kxvintage.com</label>
+      <p class="small" style="margin:10px 0 0">While this is off, the photo grid shows no prices. When it's on, each priced photo shows its old price crossed out and its sale price in red.</p>
       <div class="msg" id="livemsg"></div>
     </div>
     <p class="small" style="margin-top:20px">Pricing as <span id="whoami"></span>. <a href="#" id="signout" style="color:inherit">Not you?</a></p>
@@ -189,7 +189,7 @@ $('prev').onclick=()=>{if(idx>0){idx--;draw()}};
 $('onlyopen').onchange=draw;
 $('live').onchange=async()=>{
   const want=$('live').checked;
-  try{await saveApi({action:'slideshow',live:want});msg('livemsg',want?'Slideshow is now live on the sale site.':'Slideshow hidden. The site shows the normal photo grid.',true)}
+  try{await saveApi({action:'slideshow',live:want});msg('livemsg',want?'Prices are now showing on the sale site.':'Prices hidden on the sale site.',true)}
   catch(e){$('live').checked=!want;msg('livemsg',e.message)}
 };
 start();
