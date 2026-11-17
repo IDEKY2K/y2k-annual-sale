@@ -30,11 +30,11 @@ async function sha256(s: string) {
   return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 
-// ---- The email. Wording is exactly as Sameer wrote it (17 Nov). Style follows sale.y2kxvintage.com:
+// ---- The email. Wording is exactly as Sameer wrote it (17 Nov, 15:55 version). Style follows sale.y2kxvintage.com:
 // aqua background, black Arial bold, white bubbles. Colours are locked against email-app dark mode. No photos, all text in capitals (user, 17 Nov). Email-safe: tables + inline styles.
 const AQUA = "#00e0ff", INK = "#111111";
 function email() {
-  const subject = "You’re on the list! Y2K Vintage Early Access Sip ’n’ Shop";
+  const subject = "You’re on the list! Y2K Vintage Annual Sale Early Access";
   const p = (t: string, extra = "") => `<p style="margin:0 0 14px;font-size:16px;line-height:1.45;font-weight:700;letter-spacing:-0.3px;color:${INK}${extra}">${t.toUpperCase()}</p>`;
   const store = (name: string, addr: string) =>
     `<td width="50%" style="padding:6px;vertical-align:top"><div class="bubble" style="background-color:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);border-radius:14px;padding:14px 14px 12px">
@@ -55,23 +55,23 @@ function email() {
 }
 </style></head>
 <body class="bg" style="margin:0;padding:0;background-color:${AQUA};background-image:linear-gradient(${AQUA},${AQUA})">
-<div style="display:none;max-height:0;overflow:hidden">ANNUAL SALE EARLY ACCESS SIP N SHOP THIS THURSDAY 6:30PM.</div>
+<div style="display:none;max-height:0;overflow:hidden">LONDON ANNUAL SALE EARLY ACCESS EVENT, THURSDAY 26TH NOVEMBER AT 6:30PM.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="bg" bgcolor="${AQUA}" style="background-color:${AQUA};background-image:linear-gradient(${AQUA},${AQUA})"><tr><td align="center" style="padding:28px 14px 36px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="ink" style="max-width:560px;font-family:Arial,Helvetica,sans-serif;color:${INK}">
 <tr><td style="padding:0 6px">
 <div style="font-size:34px;line-height:1;font-weight:700;letter-spacing:-2px;color:${INK}">YOU’RE ON THE LIST!</div>
-<div style="font-size:17px;line-height:1.1;font-weight:700;letter-spacing:-0.8px;color:${INK};margin:10px 0 22px">Y2K VINTAGE ANNUAL SALE &nbsp;★&nbsp; EARLY ACCESS SIP ’N’ SHOP</div>
+<div style="font-size:17px;line-height:1.1;font-weight:700;letter-spacing:-0.8px;color:${INK};margin:10px 0 22px">Y2K VINTAGE &nbsp;★&nbsp; LONDON ANNUAL SALE EARLY ACCESS EVENT</div>
 ${p("Hey,")}
-${p("Thanks for RSVPing! You’re on the list for our Annual Sale Early Access Sip n Shop this Thursday 6:30pm.")}
-${p("Come have a sip and shop the sale before it opens to everyone. All vintage is £5–£30, and you’ll get an extra 15% off those prices on the night.")}
+${p("Thanks for RSVPing! You’re on the list for our London Annual Sale Early Access Event on Thursday 26th November at 6:30pm.")}
+${p("Shop the sale before it opens to everyone. All vintage is £5–£30, and you’ll get an extra 15% off those prices on the night.")}
 </td></tr>
 <tr><td><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>
 ${store("Brick Lane", "214 Brick Lane,<br>London E1 6SA")}
 ${store("Notting Hill", "217 Portobello Road,<br>London W11 1LU")}
 </tr></table></td></tr>
 <tr><td style="padding:18px 6px 0">
-${p("See you Thursday!")}
-${p("Y2K Vintage x", ";margin-bottom:26px")}
+${p("See you on the 26th!")}
+${p("Y2K Vintage ★", ";margin-bottom:26px")}
 <div style="font-size:13px;font-weight:700;letter-spacing:-0.2px;color:${INK};text-align:center">@Y2KXVINTAGE</div>
 </td></tr>
 </table></td></tr></table></body></html>`;
