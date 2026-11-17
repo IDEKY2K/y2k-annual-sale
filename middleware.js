@@ -6,7 +6,7 @@
 //   even after LOCKED is set to false.
 // - The hourly uptime check sends the unlock cookie, so it still checks the real pages.
 // TO TURN THE PASSWORD OFF: delete this file (or set LOCKED = false) and push.
-const LOCKED = true;
+const LOCKED = false; // public since 17 Nov 2026 15:25 (user); admin pages stay locked
 // SHA-256 of the password (the password itself is not stored here).
 const PASS_HASH = 'e3f3a09cff25d06e03f04011c0424edfc9697915ba3b67bd1313bb9f288568d1';
 const COOKIE = 'sale_gate';
@@ -29,7 +29,7 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 export default async function middleware(req) {
   const url = new URL(req.url);
   const isAdmin = /^\/(api\/)?admin/.test(url.pathname);
-  if (!LOCKED && !isAdmin) return pass();
+  if (!LOCKED && !isAdmin && url.pathname !== '/__unlock') return pass();
   const token = await sha256(PASS_HASH + ':cookie-v1');
 
   // Password form submitted
@@ -74,7 +74,7 @@ main{width:100%;max-width:360px;text-align:center}h1{margin:0 0 6px;font-size:30
 input{width:100%;font:inherit;font-size:17px;padding:12px 14px;border:2px solid #111;border-radius:12px;background:#fff;margin-bottom:10px}
 button{width:100%;font:inherit;font-size:17px;font-weight:700;letter-spacing:-.04em;text-transform:uppercase;padding:12px;border:0;border-radius:12px;background:#111;color:#00e0ff;cursor:pointer}
 .err{color:#b00020;margin:0 0 10px;font-weight:700}</style></head><body><main>
-<h1>Y2K VINTAGE ANNUAL SALE.</h1><p>COMING SOON. 27<sup>th</sup> - 29<sup>th</sup> NOVEMBER</p>
+<h1>Y2K VINTAGE ANNUAL SALE.</h1><p>${LOCKED ? 'COMING SOON. 27<sup>th</sup> - 29<sup>th</sup> NOVEMBER' : 'STAFF ONLY'}</p>
 <form method="post" action="/__unlock"><input type="hidden" name="next" value="${esc(next)}">
 ${wrong ? '<p class="err">Wrong password, try again.</p>' : ''}
 <input type="password" name="password" placeholder="Password" autocomplete="current-password" required autofocus>
