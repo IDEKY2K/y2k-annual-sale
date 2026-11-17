@@ -31,7 +31,7 @@ async function sha256(s: string) {
 
 // ---- The email. Wording is exactly as Sameer wrote it (17 Nov). Style follows sale.y2kxvintage.com:
 // aqua background, black Arial bold, white bubbles. No photos (user, 17 Nov). Email-safe: tables + inline styles.
-const AQUA = "#66ddfb", INK = "#111111";
+const AQUA = "#00e0ff", INK = "#111111";
 function email() {
   const subject = "You’re on the list! Y2K Vintage Early Access Sip ’n’ Shop";
   const p = (t: string, extra = "") => `<p style="margin:0 0 14px;font-size:16px;line-height:1.45;font-weight:700;letter-spacing:-0.3px;color:${INK}${extra}">${t}</p>`;
