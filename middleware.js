@@ -69,10 +69,10 @@ export default async function middleware(req) {
 function gate(next, wrong) {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Y2K Vintage Annual Sale</title><meta name="robots" content="noindex">
-<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#66ddfb;color:#111;font-family:Arial,Helvetica,sans-serif;padding:24px}
+<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#00e0ff;color:#111;font-family:Arial,Helvetica,sans-serif;padding:24px}
 main{width:100%;max-width:360px;text-align:center}h1{margin:0 0 6px;font-size:30px;letter-spacing:-.06em;line-height:1}p{margin:0 0 18px;font-weight:700;letter-spacing:-.03em}
 input{width:100%;font:inherit;font-size:17px;padding:12px 14px;border:2px solid #111;border-radius:12px;background:#fff;margin-bottom:10px}
-button{width:100%;font:inherit;font-size:17px;font-weight:700;letter-spacing:-.04em;text-transform:uppercase;padding:12px;border:0;border-radius:12px;background:#111;color:#66ddfb;cursor:pointer}
+button{width:100%;font:inherit;font-size:17px;font-weight:700;letter-spacing:-.04em;text-transform:uppercase;padding:12px;border:0;border-radius:12px;background:#111;color:#00e0ff;cursor:pointer}
 .err{color:#b00020;margin:0 0 10px;font-weight:700}</style></head><body><main>
 <h1>Y2K VINTAGE ANNUAL SALE.</h1><p>COMING SOON. 27<sup>th</sup> - 29<sup>th</sup> NOVEMBER</p>
 <form method="post" action="/__unlock"><input type="hidden" name="next" value="${esc(next)}">
