@@ -43,19 +43,9 @@ button:disabled{opacity:.5}
 <div class="wrap">
   <h1>Annual sale pricing</h1>
 
-  <!-- First ever visit: choose the staff passcode (only possible once) -->
-  <section id="setup" class="card" hidden>
-    <p>No passcode has been set yet. Choose the staff passcode now (at least 6 characters). Only you need to do this, once.</p>
-    <label for="newpass">New staff passcode</label>
-    <input id="newpass" type="password" autocomplete="new-password">
-    <div class="row" style="margin-top:14px"><button id="setpass">Save passcode</button></div>
-    <div class="msg" id="setupmsg"></div>
-  </section>
 
-  <!-- Sign in: passcode + name (saved on each price) -->
+  <!-- Name only: this page sits behind the sale site password. The name is saved on each price. -->
   <section id="login" class="card" hidden>
-    <label for="pass">Staff passcode</label>
-    <input id="pass" type="password" autocomplete="current-password">
     <label for="who">Your name</label>
     <input id="who" type="text" autocomplete="name">
     <div class="row" style="margin-top:14px"><button id="go">Start pricing</button></div>
@@ -91,7 +81,7 @@ button:disabled{opacity:.5}
       <p class="small" style="margin:10px 0 0">While this is off, the site keeps its normal photo grid and no prices are shown. Only items with a sale price appear in the slideshow.</p>
       <div class="msg" id="livemsg"></div>
     </div>
-    <p class="small" style="margin-top:20px">Signed in as <span id="whoami"></span>. <a href="#" id="signout" style="color:inherit">Sign out</a></p>
+    <p class="small" style="margin-top:20px">Pricing as <span id="whoami"></span>. <a href="#" id="signout" style="color:inherit">Not you?</a></p>
   </section>
 </div>
 <script>
@@ -103,40 +93,34 @@ async function rpc(fn,args){
   if(!r.ok)throw new Error((d&&d.message)||'Something went wrong, try again');
   return d;
 }
+// Saving goes through /api/admin, which only runs for phones that have entered the sale site password.
+async function saveApi(body){
+  const r=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok){let m='Could not save, try again';try{m=(await r.json()).error||m}catch(e){}throw new Error(m)}
+}
 const $=id=>document.getElementById(id);
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
-function show(id){['setup','login','work'].forEach(s=>$(s).hidden=s!==id)}
+function show(id){['login','work'].forEach(s=>$(s).hidden=s!==id)}
 function msg(id,text,ok){const m=$(id);m.textContent=text||'';m.className='msg'+(text?(ok?' ok':' err'):'')}
 
-let PASS=null, WHO=null, ITEMS=[], PRICES={}, idx=0;
+let WHO=null, ITEMS=[], PRICES={}, idx=0;
 
 async function start(){
   try{
     const s=await rpc('sale_admin_status');
-    if(!s.has_passcode){show('setup');return}
     $('live').checked=!!s.slideshow_live;
-    const p=store.get('sale_admin_pass'), w=store.get('sale_admin_who');
-    if(p&&w&&await rpc('sale_check_passcode',{p})){PASS=p;WHO=w;return openWork()}
-    $('who').value=w||'';show('login');
+    const w=store.get('sale_admin_who');
+    if(w){WHO=w;return openWork()}
+    show('login');
   }catch(e){document.querySelector('.wrap').append('Could not connect. Check your signal and refresh.')}
 }
-$('setpass').onclick=async()=>{
-  const p=$('newpass').value.trim();
-  if(p.length<6)return msg('setupmsg','Use at least 6 characters.');
-  try{const ok=await rpc('sale_set_first_passcode',{p});
-    if(!ok)return msg('setupmsg','A passcode has already been set.');
-    msg('setupmsg','Saved.',true);show('login');
-  }catch(e){msg('setupmsg',e.message)}
-};
-$('go').onclick=async()=>{
-  const p=$('pass').value.trim(), w=$('who').value.trim();
+$('go').onclick=()=>{
+  const w=$('who').value.trim();
   if(!w)return msg('loginmsg','Type your name so we know who priced what.');
-  try{if(!await rpc('sale_check_passcode',{p}))return msg('loginmsg','Wrong passcode.');}
-  catch(e){return msg('loginmsg',e.message)}
-  PASS=p;WHO=w;store.set('sale_admin_pass',p);store.set('sale_admin_who',w);openWork();
+  WHO=w;store.set('sale_admin_who',w);openWork();
 };
-$('pass').onkeydown=$('who').onkeydown=e=>{if(e.key==='Enter')$('go').click()};
-$('signout').onclick=e=>{e.preventDefault();store.del('sale_admin_pass');PASS=null;$('pass').value='';show('login')};
+$('who').onkeydown=e=>{if(e.key==='Enter')$('go').click()};
+$('signout').onclick=e=>{e.preventDefault();store.del('sale_admin_who');$('who').value='';show('login')};
 
 async function openWork(){
   $('whoami').textContent=WHO;show('work');
@@ -146,7 +130,7 @@ async function openWork(){
     fetch(SB+'/rest/v1/sale_item_prices?select=photo,old_price,new_price,priced_by',{headers:H,cache:'no-store'}).then(r=>r.json())
   ])}catch(e){
     // The sale site's password screen blocks the photos until this phone has unlocked the site once.
-    $('work').innerHTML='<div class="card"><p><b>Unlock the sale site first.</b> The photos are behind the sale site password. Open <a href="/" style="color:inherit">sale.y2kxvintage.com</a>, enter the site password, then come back to this page.</p></div>';
+    $('work').innerHTML='<div class="card"><p>Could not load the photos. Check your signal and refresh.</p></div>';
     return;
   }
   ITEMS=(items.items||[]).filter(i=>i.active!==false&&i.photo).map(i=>i.photo.replace(/^\//,''));
@@ -190,7 +174,7 @@ $('save').onclick=async()=>{
   confirmed=false;$('save').disabled=true;
   try{
     const p=ITEMS[idx];
-    await rpc('sale_save_price',{p:PASS,p_photo:p,p_old:o,p_new:s,p_by:WHO});
+    await saveApi({action:'price',photo:p,old_price:o,new_price:s,by:WHO});
     PRICES[p]={photo:p,old_price:o,new_price:s,priced_by:WHO};
     next();msg('savemsg','Saved.',true);$('oldp').focus();
   }catch(e){msg('savemsg',e.message)}
@@ -205,7 +189,7 @@ $('prev').onclick=()=>{if(idx>0){idx--;draw()}};
 $('onlyopen').onchange=draw;
 $('live').onchange=async()=>{
   const want=$('live').checked;
-  try{await rpc('sale_set_slideshow',{p:PASS,live:want});msg('livemsg',want?'Slideshow is now live on the sale site.':'Slideshow hidden. The site shows the normal photo grid.',true)}
+  try{await saveApi({action:'slideshow',live:want});msg('livemsg',want?'Slideshow is now live on the sale site.':'Slideshow hidden. The site shows the normal photo grid.',true)}
   catch(e){$('live').checked=!want;msg('livemsg',e.message)}
 };
 start();

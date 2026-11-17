@@ -2,7 +2,8 @@
 // Runs on Vercel before every request. Without the unlock cookie, visitors get a password page.
 // - QR scans are still counted: when the password page is shown for a QR link or a page visit,
 //   one row goes into Supabase sale_visits with referrer "(password screen)".
-// - /admin (staff pricing screen, has its own passcode) and /api/geo are not blocked.
+// - /api/geo is not blocked. /admin and /api/admin (staff pricing) ALWAYS need this password,
+//   even after LOCKED is set to false.
 // - The hourly uptime check sends the unlock cookie, so it still checks the real pages.
 // TO TURN THE PASSWORD OFF: delete this file (or set LOCKED = false) and push.
 const LOCKED = true;
@@ -12,7 +13,7 @@ const COOKIE = 'sale_gate';
 const SUPABASE = 'https://xotyvlaeuyujoqrtdxiy.supabase.co/rest/v1/sale_visits';
 const SB_KEY = 'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu';
 
-export const config = { matcher: '/((?!api/geo|admin).*)' };
+export const config = { matcher: '/((?!api/geo).*)' };
 
 async function sha256(s) {
   const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
@@ -26,8 +27,9 @@ const getCookie = (req, name) => {
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 export default async function middleware(req) {
-  if (!LOCKED) return pass();
   const url = new URL(req.url);
+  const isAdmin = /^\/(api\/)?admin/.test(url.pathname);
+  if (!LOCKED && !isAdmin) return pass();
   const token = await sha256(PASS_HASH + ':cookie-v1');
 
   // Password form submitted
