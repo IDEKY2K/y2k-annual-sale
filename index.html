@@ -62,7 +62,7 @@ footer{padding-block:28px 40px;font-size:13px;font-weight:700;text-align:center;
   <p class="peek">SNEAK PEEK BELOW</p>
 </header>
 <nav class="wrap" aria-label="Filter"><div class="chips" id="cat"><button class="chip" data-g="all">All</button><button class="chip" data-g="womens">Womens</button><button class="chip" data-g="mens">Mens</button></div>
-<div class="chips sub2" id="type"><button class="chip" data-c="all">All</button><button class="chip" data-c="jackets">Jackets</button><button class="chip" data-c="tops">Tops &amp; Knitwear</button><button class="chip" data-c="bottoms">Bottoms</button><button class="chip" data-c="skirts">Skirts</button><button class="chip" data-c="dresses">Dresses</button></div></nav>
+<div class="chips sub2" id="type"><button class="chip" data-c="all">All</button><button class="chip" data-c="jackets">Jackets</button><button class="chip" data-c="tops">Tops &amp; Knitwear</button><button class="chip" data-c="bottoms">Bottoms</button><button class="chip" data-c="skirts">Skirts</button><button class="chip" data-c="dresses">Dresses</button><button class="chip" data-c="accessories">Accessories</button></div></nav>
 <main class="wrap" id="cats" style="padding-top:4px"></main>
 <footer class="wrap">@Y2KXVINTAGE</footer>
 <div class="topbar"><a class="banner" id="early" href="https://forms.fillout.com/t/9FDRy1w2KWus?Website=xxx">Want early access?</a><a class="banner lower" href="https://www.instagram.com/y2kxvintage/" target="_blank" rel="noopener">SOCIALS</a></div>
@@ -80,7 +80,7 @@ let TYPES={};   // photo -> 'jackets' | 'tops' | 'bottoms' | 'skirts' | 'dresses
 // Filters: row 1 All/Womens/Mens, row 2 All/categories. Kept in the link, e.g. #womens/jackets.
 let [CAT,TYPE]=(decodeURIComponent(location.hash.slice(1))||'all/all').split('/');
 if(!['all','womens','mens'].includes(CAT))CAT='all';
-if(!['all','jackets','tops','bottoms','skirts','dresses'].includes(TYPE))TYPE='all';
+if(!['all','jackets','tops','bottoms','skirts','dresses','accessories'].includes(TYPE))TYPE='all';
 function setHash(){try{history.replaceState(null,'',CAT==='all'&&TYPE==='all'?location.pathname+location.search:'#'+CAT+'/'+TYPE)}catch(e){}}
 document.querySelectorAll('#cat .chip').forEach(b=>b.onclick=()=>{CAT=b.dataset.g;setHash();render()});
 document.querySelectorAll('#type .chip').forEach(b=>b.onclick=()=>{TYPE=b.dataset.c;setHash();render()});
