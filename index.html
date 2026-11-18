@@ -160,6 +160,8 @@ Promise.all([
     try{vid=localStorage.getItem('sale_vid');if(!vid){vid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('sale_vid',vid)}}catch(e){}
     var device=/iPhone|iPad/.test(navigator.userAgent)?'ios':/Android/.test(navigator.userAgent)?'android':'other';
     var row={source:source,visitor_id:vid,device:device,referrer:(document.referrer||'').slice(0,300)};
+    // Wi-Fi vs mobile data, where the phone reports it silently (Android Chrome). Mobile data often shows the carrier's London hub as the city.
+    try{var c=navigator.connection;if(c&&c.type)row.network=String(c.type).slice(0,20)}catch(e){}
     var log=function(){fetch('https://xotyvlaeuyujoqrtdxiy.supabase.co/rest/v1/sale_visits',{method:'POST',keepalive:true,
       headers:{'apikey':'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu','Content-Type':'application/json','Prefer':'return=minimal'},
       body:JSON.stringify(row)}).catch(function(){})};
