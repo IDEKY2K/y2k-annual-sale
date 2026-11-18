@@ -70,7 +70,7 @@ footer{padding-block:28px 40px;font-size:13px;font-weight:700;text-align:center;
 <script>
 // Two versions of this page: London (default, with early access) and Brighton & Leeds (/brighton-leeds, no early access).
 // Brighton & Leeds QR tags start with "bl-".
-var SALE_BL=/^\/brighton-leeds/.test(location.pathname)||/^\/qr\/bl-/i.test(location.pathname)||/[?&]qr=bl-/i.test(location.search);
+var SALE_BL=/^\/brighton-leeds/.test(location.pathname)||/^\/qr\/(bl|leeds)-/i.test(location.pathname)||/[?&]qr=(bl|leeds)-/i.test(location.search);
 if(SALE_BL){var e=document.getElementById('early');if(e)e.remove()}
 </script>
 <script>
