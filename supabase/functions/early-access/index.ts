@@ -7,7 +7,8 @@
 // Britney Bot's own functions are not touched.
 // Protection against misuse: hidden "website" honeypot field, max 5 sign-ups per hour per connection,
 // and an email address only ever gets the confirmation once.
-// {preview:true} returns the email HTML without saving or sending.
+// {preview:true, store?} returns the email HTML without saving or sending.
+// The email shows only the address of the store the person picked.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const FROM = "hello@y2kxvintage.com";
@@ -33,13 +34,20 @@ async function sha256(s: string) {
 // ---- The email. Wording is exactly as Sameer wrote it (17 Nov, 15:55 version). Style follows sale.y2kxvintage.com:
 // aqua background, black Arial bold, white bubbles. Colours are locked against email-app dark mode. No photos, all text in capitals (user, 17 Nov). Email-safe: tables + inline styles.
 const AQUA = "#00e0ff", INK = "#111111";
-function email() {
+function email(chosen?: string | null) {
   const subject = "You’re on the list! Y2K Vintage Annual Sale Early Access";
+  // Only the store they signed up for. (Both are shown only if no store was given.)
+  const ADDR: Record<string, [string, string]> = {
+    "Brick Lane Mens & Womens": ["Brick Lane", "214 Brick Lane,<br>London E1 6SA"],
+    "Notting Hill": ["Notting Hill", "217 Portobello Road,<br>London W11 1LU"],
+  };
   const p = (t: string, extra = "") => `<p style="margin:0 0 14px;font-size:16px;line-height:1.45;font-weight:700;letter-spacing:-0.3px;color:${INK}${extra}">${t.toUpperCase()}</p>`;
-  const store = (name: string, addr: string) =>
-    `<td width="50%" style="padding:6px;vertical-align:top"><div class="bubble" style="background-color:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);border-radius:14px;padding:14px 14px 12px">
+  const store = (name: string, addr: string, full = false) =>
+    `<td width="${full ? "100%" : "50%"}" style="padding:6px;vertical-align:top"><div class="bubble" style="background-color:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);border-radius:14px;padding:14px 14px 12px">
 <div style="font-size:18px;font-weight:700;letter-spacing:-0.6px;color:${INK};text-transform:uppercase">${name.toUpperCase()}</div>
 <div style="font-size:14px;font-weight:700;letter-spacing:-0.2px;color:${INK};margin-top:4px;line-height:1.35">${addr.toUpperCase().replace(/<BR>/g, "<br>")}</div></div></td>`;
+  const pick = chosen && ADDR[chosen] ? [ADDR[chosen]] : Object.values(ADDR);
+  const bubbles = pick.map(([n, a]) => store(n, a, pick.length === 1)).join("\n");
   const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"><title>${esc(subject)}</title>
 <style>
 :root{color-scheme:light only;supported-color-schemes:light only}
@@ -66,8 +74,7 @@ ${p("Thanks for RSVPing! You’re on the list for our London Annual Sale Early A
 ${p("Shop the sale before it opens to everyone. All vintage is £5–£30, and you’ll get an extra 15% off those prices on the night.")}
 </td></tr>
 <tr><td><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>
-${store("Brick Lane", "214 Brick Lane,<br>London E1 6SA")}
-${store("Notting Hill", "217 Portobello Road,<br>London W11 1LU")}
+${bubbles}
 </tr></table></td></tr>
 <tr><td style="padding:18px 6px 0">
 ${p("See you on the 26th!")}
@@ -107,7 +114,7 @@ Deno.serve(async (req) => {
   const b = await req.json().catch(() => ({} as any));
 
   if (b.preview) {
-    const m = email();
+    const m = email(b.store ? clean(b.store) : null);
     return new Response(m.html, { headers: { ...H, "Content-Type": "text/html; charset=utf-8" } });
   }
 
@@ -145,7 +152,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    await send(mail, [first, last].filter(Boolean).join(" "), email());
+    await send(mail, [first, last].filter(Boolean).join(" "), email(store));
     await db.from("early_access_signups").update({ email_status: "sent", email_sent_at: new Date().toISOString(), email_error: null }).eq("id", id);
   } catch (e) {
     // The sign-up is still saved; the email can be re-sent later.
