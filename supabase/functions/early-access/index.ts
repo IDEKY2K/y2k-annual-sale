@@ -16,9 +16,9 @@ const env = (k: string) => Deno.env.get(k) || "";
 const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
 // Three stores (19 Nov). "Brick Lane Mens & Womens" is the old combined option: those sign-ups get BOTH Brick Lane addresses.
 const STORES = ["Brick Lane Womens", "Brick Lane Mens", "Notting Hill", "Brick Lane Mens & Womens"];
-// TEST MODE (user, 19 Nov): only these addresses get the email. Everyone else is saved with email_status "held"
-// and nothing is sent. Empty this list to go live for everyone. Test addresses get the email every time (no once-only rule).
-const TEST_ONLY: string[] = ["sameer@y2kwholesale.com"];
+// TEST MODE switch. LIVE since 19 Nov 14:50 (user: "lets make this live"): the list is empty, so everyone gets the email.
+// Put addresses in the list to go back to test mode: only those get the email, everyone else is saved as "held".
+const TEST_ONLY: string[] = [];
 const ALLOWED_ORIGINS = [/^https:\/\/sale\.y2kxvintage\.com$/, /^https:\/\/y2k-annual-sale[a-z0-9-]*\.vercel\.app$/];
 
 const cors = (origin: string | null) => ({
@@ -105,13 +105,24 @@ async function graphToken() {
   if (!j.access_token) throw new Error("Microsoft sign-in failed: " + (j.error_description || j.error || r.status));
   return j.access_token as string;
 }
+// Microsoft only lets a few emails send from one mailbox at the same moment (429 "MailboxConcurrency"),
+// so a busy moment is retried up to 5 times with a growing pause before the email is marked failed.
 async function send(to: string, name: string, m: { subject: string; html: string }) {
-  const r = await fetch(`https://graph.microsoft.com/v1.0/users/${FROM}/sendMail`, {
-    method: "POST", headers: { Authorization: "Bearer " + (await graphToken()), "Content-Type": "application/json" },
-    body: JSON.stringify({ message: { subject: m.subject, body: { contentType: "HTML", content: m.html },
-      toRecipients: [{ emailAddress: { address: to, name: name || undefined } }] }, saveToSentItems: true }),
-  });
-  if (!r.ok) throw new Error(`Send failed (${r.status}): ${(await r.text()).slice(0, 300)}`);
+  const token = await graphToken();
+  for (let attempt = 0; ; attempt++) {
+    const r = await fetch(`https://graph.microsoft.com/v1.0/users/${FROM}/sendMail`, {
+      method: "POST", headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+      body: JSON.stringify({ message: { subject: m.subject, body: { contentType: "HTML", content: m.html },
+        toRecipients: [{ emailAddress: { address: to, name: name || undefined } }] }, saveToSentItems: true }),
+    });
+    if (r.ok) return;
+    if ((r.status === 429 || r.status === 503) && attempt < 5) {
+      const wait = Number(r.headers.get("retry-after")) || 0;
+      await new Promise((ok) => setTimeout(ok, Math.max(wait * 1000, (attempt + 1) * 1500 + Math.random() * 1000)));
+      continue;
+    }
+    throw new Error(`Send failed (${r.status}): ${(await r.text()).slice(0, 300)}`);
+  }
 }
 
 // Reads a Fillout submission. Only these exact store answers count as an annual sale early access sign-up
