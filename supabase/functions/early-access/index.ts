@@ -16,9 +16,11 @@ const env = (k: string) => Deno.env.get(k) || "";
 const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
 // Three stores (19 Nov). "Brick Lane Mens & Womens" is the old combined option: those sign-ups get BOTH Brick Lane addresses.
 const STORES = ["Brick Lane Womens", "Brick Lane Mens", "Notting Hill", "Brick Lane Mens & Womens"];
-// TEST MODE switch. LIVE since 19 Nov 14:50 (user: "lets make this live"): the list is empty, so everyone gets the email.
-// Put addresses in the list to go back to test mode: only those get the email, everyone else is saved as "held".
-const TEST_ONLY: string[] = [];
+// PAUSE switch. Was live 19 Nov 14:50-15:08; PAUSED 19 Nov 15:08 (user: email looks bad in Gmail).
+// While paused, only test addresses get the email: this list plus any row in early_access_signups marked is_test.
+// Everyone else is saved as "held" (send them once un-paused). Set PAUSED to false to go live.
+const PAUSED = true;
+const TEST_ONLY: string[] = ["sameer@y2kwholesale.com"];
 const ALLOWED_ORIGINS = [/^https:\/\/sale\.y2kxvintage\.com$/, /^https:\/\/y2k-annual-sale[a-z0-9-]*\.vercel\.app$/];
 
 const cors = (origin: string | null) => ({
@@ -210,7 +212,8 @@ Deno.serve(async (req) => {
   }
 
   // One row per email. A repeat sign-up updates the details but doesn't send a second email.
-  const existing = await db.from("early_access_signups").select("id,email_status").ilike("email", mail).maybeSingle();
+  const existing = await db.from("early_access_signups").select("id,email_status,is_test").ilike("email", mail).maybeSingle();
+  const isTest = TEST_ONLY.includes(mail) || !!existing.data?.is_test;
   const row = { first_name: first, last_name: last || null, email: mail, phone: phone || null, store,
     marketing_consent: !!b.marketing_consent, source: clean(b.source, 60) || null, ip_hash: ipHash,
     user_agent: clean(req.headers.get("user-agent"), 200) || null };
@@ -218,14 +221,14 @@ Deno.serve(async (req) => {
   if (existing.data) {
     id = existing.data.id;
     await db.from("early_access_signups").update(row).eq("id", id);
-    if (existing.data.email_status === "sent" && !TEST_ONLY.includes(mail)) return json({ ok: true, already: true });
+    if (existing.data.email_status === "sent" && !isTest) return json({ ok: true, already: true });
   } else {
     const ins = await db.from("early_access_signups").insert(row).select("id").single();
     if (ins.error) return json({ ok: false, error: "Something went wrong. Please try again." }, 500);
     id = ins.data.id;
   }
 
-  if (TEST_ONLY.length && !TEST_ONLY.includes(mail)) {
+  if (PAUSED && !isTest) {
     await db.from("early_access_signups").update({ email_status: "held" }).eq("id", id);
     return json({ ok: true });
   }
