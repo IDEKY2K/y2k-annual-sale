@@ -14,7 +14,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const FROM = "hello@y2kxvintage.com";
 const env = (k: string) => Deno.env.get(k) || "";
 const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
-const STORES = ["Brick Lane Mens & Womens", "Notting Hill"];
+// Three stores (19 Nov). "Brick Lane Mens & Womens" is the old combined option: those sign-ups get BOTH Brick Lane addresses.
+const STORES = ["Brick Lane Womens", "Brick Lane Mens", "Notting Hill", "Brick Lane Mens & Womens"];
 const ALLOWED_ORIGINS = [/^https:\/\/sale\.y2kxvintage\.com$/, /^https:\/\/y2k-annual-sale[a-z0-9-]*\.vercel\.app$/];
 
 const cors = (origin: string | null) => ({
@@ -36,18 +37,23 @@ async function sha256(s: string) {
 const AQUA = "#00e0ff", INK = "#111111";
 function email(chosen?: string | null) {
   const subject = "You’re on the list! Y2K Vintage Annual Sale Early Access";
-  // Only the store they signed up for. (Both are shown only if no store was given.)
-  const ADDR: Record<string, [string, string]> = {
-    "Brick Lane Mens & Womens": ["Brick Lane", "214 Brick Lane,<br>London E1 6SA"],
-    "Notting Hill": ["Notting Hill", "217 Portobello Road,<br>London W11 1LU"],
+  // Only the store(s) they signed up for. (All three are shown only if no store was given.)
+  const BLW: [string, string] = ["Brick Lane Womens", "214 Brick Lane,<br>London E1 6SA"];
+  const BLM: [string, string] = ["Brick Lane Mens", "216 Brick Lane,<br>London E1 6SA"];
+  const NH: [string, string] = ["Notting Hill", "217 Portobello Road,<br>London W11 1LU"];
+  const ADDR: Record<string, [string, string][]> = {
+    "Brick Lane Womens": [BLW],
+    "Brick Lane Mens": [BLM],
+    "Notting Hill": [NH],
+    "Brick Lane Mens & Womens": [BLW, BLM], // old combined option (backlog): both Brick Lane stores
   };
   const p = (t: string, extra = "") => `<p style="margin:0 0 14px;font-size:16px;line-height:1.45;font-weight:700;letter-spacing:-0.3px;color:${INK}${extra}">${t.toUpperCase()}</p>`;
   const store = (name: string, addr: string, full = false) =>
     `<td width="${full ? "100%" : "50%"}" style="padding:6px;vertical-align:top"><div class="bubble" style="background-color:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);border-radius:14px;padding:14px 14px 12px">
 <div style="font-size:18px;font-weight:700;letter-spacing:-0.6px;color:${INK};text-transform:uppercase">${name.toUpperCase()}</div>
 <div style="font-size:14px;font-weight:700;letter-spacing:-0.2px;color:${INK};margin-top:4px;line-height:1.35">${addr.toUpperCase().replace(/<BR>/g, "<br>")}</div></div></td>`;
-  const pick = chosen && ADDR[chosen] ? [ADDR[chosen]] : Object.values(ADDR);
-  const bubbles = pick.map(([n, a]) => store(n, a, pick.length === 1)).join("\n");
+  const pick = chosen && ADDR[chosen] ? ADDR[chosen] : [BLW, BLM, NH];
+  const bubbles = pick.map(([n, a], i) => (i && i % 2 === 0 ? "</tr><tr>" : "") + store(n, a, pick.length === 1)).join("\n");
   const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"><title>${esc(subject)}</title>
 <style>
 :root{color-scheme:light only;supported-color-schemes:light only}
