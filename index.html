@@ -42,8 +42,8 @@ h2{font-weight:700;font-size:20px;letter-spacing:-.05em;margin:0 0 10px;color:va
 .price{display:flex;justify-content:center;align-items:baseline;gap:10px;margin-top:8px;font-weight:700;letter-spacing:-.05em}
 .price s{position:relative;text-decoration:none;color:#111;font-size:clamp(16px,4.6vw,24px)}
 /* Diagonal line through the old price */
-.price s::after{content:"";position:absolute;left:-6%;right:-6%;top:50%;border-top:2.5px solid #111;transform:rotate(-18deg)}
-.price b{color:#e0001b;font-size:clamp(22px,6.6vw,34px)}
+.price s::after{content:"";position:absolute;left:-6%;right:-6%;top:50%;border-top:2.5px solid #00e0ff;transform:rotate(-18deg)}
+.price b{color:#00e0ff;font-size:clamp(22px,6.6vw,34px)}
 footer{padding-block:28px 40px;font-size:13px;font-weight:700;text-align:center;letter-spacing:-.02em}
 .topbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:3;display:flex;gap:10px;max-width:calc(100vw - 24px)}
 .topbar .banner{box-shadow:0 6px 20px rgba(0,0,0,.18)}
@@ -62,15 +62,15 @@ footer{padding-block:28px 40px;font-size:13px;font-weight:700;text-align:center;
   <p class="sub">27<sup>th</sup> - 29<sup>th</sup> NOVEMBER &nbsp;★&nbsp; Y2K VINTAGE STORES</p>
   <p class="peek">SNEAK PEEK BELOW</p>
 </header>
-<nav class="wrap" aria-label="Filter"><div class="chips" id="cat"><button class="chip" data-g="all">All</button><button class="chip" data-g="womens">Womens</button><button class="chip" data-g="mens">Mens</button></div>
+<nav class="wrap" aria-label="Filter"><div class="chips" id="cat"><button class="chip" data-g="womens">Womens</button><button class="chip" data-g="mens">Mens</button></div>
 <div class="chips sub2" id="type"><button class="chip" data-c="all">All</button><button class="chip" data-c="jackets">Jackets</button><button class="chip" data-c="tops">Tops &amp; Knitwear</button><button class="chip" data-c="bottoms">Bottoms &amp; Skirts</button><button class="chip" data-c="dresses">Dresses</button><button class="chip" data-c="accessories">Accessories</button></div></nav>
 <main class="wrap" id="cats" style="padding-top:4px"></main>
 <footer class="wrap">@Y2KXVINTAGE</footer>
-<div class="topbar"><a class="banner" id="early" href="/early-access">Want early access?</a><a class="banner lower" href="https://www.instagram.com/y2kxvintage/" target="_blank" rel="noopener">SOCIALS</a></div>
+<div class="topbar"><a class="banner" id="early" href="https://forms.fillout.com/t/9FDRy1w2KWus?Website=xxx">Want early access?</a><a class="banner lower" href="https://www.instagram.com/y2kxvintage/" target="_blank" rel="noopener">SOCIALS</a></div>
 <script>
 // Two versions of this page: London (default, with early access) and Brighton & Leeds (/brighton-leeds, no early access).
 // Brighton & Leeds QR tags start with "bl-".
-var SALE_BL=/^\/brighton-leeds/.test(location.pathname)||/^\/qr\/bl-/i.test(location.pathname)||/[?&]qr=bl-/i.test(location.search);
+var SALE_BL=/^\/brighton-leeds/.test(location.pathname)||/^\/qr\/(bl|leeds)-/i.test(location.pathname)||/[?&]qr=(bl|leeds)-/i.test(location.search);
 if(SALE_BL){var e=document.getElementById('early');if(e)e.remove()}
 </script>
 <script>
@@ -78,11 +78,11 @@ let DATA={items:[]};
 let PRICES=null; // filled from Supabase when prices are switched on in /admin
 let GENDERS={}; // photo -> 'womens' | 'mens' (set in /admin). Untagged photos show under both.
 let TYPES={};   // photo -> 'jackets' | 'tops' | 'bottoms' | 'dresses' | 'accessories' (set in /admin-categories).
-// Filters: row 1 All/Womens/Mens, row 2 All/categories. Kept in the link, e.g. #womens/jackets.
-let [CAT,TYPE]=(decodeURIComponent(location.hash.slice(1))||'all/all').split('/');
-if(!['all','womens','mens'].includes(CAT))CAT='all';
+// Filters: row 1 Womens/Mens, row 2 All/categories. Kept in the link, e.g. #womens/jackets.
+let [CAT,TYPE]=(decodeURIComponent(location.hash.slice(1))||'womens/all').split('/');
+if(!['womens','mens'].includes(CAT))CAT='womens';
 if(!['all','jackets','tops','bottoms','dresses','accessories'].includes(TYPE))TYPE='all';
-function setHash(){try{history.replaceState(null,'',CAT==='all'&&TYPE==='all'?location.pathname+location.search:'#'+CAT+'/'+TYPE)}catch(e){}}
+function setHash(){try{history.replaceState(null,'',CAT==='womens'&&TYPE==='all'?location.pathname+location.search:'#'+CAT+'/'+TYPE)}catch(e){}}
 document.querySelectorAll('#cat .chip').forEach(b=>b.onclick=()=>{CAT=b.dataset.g;setHash();render()});
 document.querySelectorAll('#type .chip').forEach(b=>b.onclick=()=>{TYPE=b.dataset.c;setHash();render()});
 function photoSrc(p){return p.startsWith('http')||p.startsWith('/')?p:'/'+p}
@@ -132,7 +132,7 @@ fitHeadline();addEventListener('resize',fitHeadline);
 // Only the official photos added in /admin are shown (the old sneak-peek photos in items.json were removed 17 Nov).
 Promise.all([
   Promise.resolve(null),
-  fetch('https://xotyvlaeuyujoqrtdxiy.supabase.co/rest/v1/sale_items?select=photo&active=eq.true&order=created_at.asc,source_name.asc',{headers:{apikey:'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu'}}).then(r=>r.ok?r.json():[]).catch(()=>[])
+  fetch('https://xotyvlaeuyujoqrtdxiy.supabase.co/rest/v1/sale_items?select=photo&active=eq.true&order=sort_order.asc.nullslast,created_at.asc,source_name.asc',{headers:{apikey:'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu'}}).then(r=>r.ok?r.json():[]).catch(()=>[])
 ]).then(([d,off])=>{DATA={items:off.map(o=>({photo:o.photo,active:true}))};render()})
   .catch(()=>{document.getElementById('cats').textContent='Could not load the sale. Please refresh.'});
 // Prices: only shown once they are switched on in /admin.
@@ -160,6 +160,8 @@ Promise.all([
     try{vid=localStorage.getItem('sale_vid');if(!vid){vid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('sale_vid',vid)}}catch(e){}
     var device=/iPhone|iPad/.test(navigator.userAgent)?'ios':/Android/.test(navigator.userAgent)?'android':'other';
     var row={source:source,visitor_id:vid,device:device,referrer:(document.referrer||'').slice(0,300)};
+    // Wi-Fi vs mobile data, where the phone reports it silently (Android Chrome). Mobile data often shows the carrier's London hub as the city.
+    try{var c=navigator.connection;if(c&&c.type)row.network=String(c.type).slice(0,20)}catch(e){}
     var log=function(){fetch('https://xotyvlaeuyujoqrtdxiy.supabase.co/rest/v1/sale_visits',{method:'POST',keepalive:true,
       headers:{'apikey':'sb_publishable_w6UzqtXtgJshqYwdCUpaug_NjX0KBwu','Content-Type':'application/json','Prefer':'return=minimal'},
       body:JSON.stringify(row)}).catch(function(){})};

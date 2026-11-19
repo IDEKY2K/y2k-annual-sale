@@ -16,6 +16,9 @@ const env = (k: string) => Deno.env.get(k) || "";
 const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
 // Three stores (19 Nov). "Brick Lane Mens & Womens" is the old combined option: those sign-ups get BOTH Brick Lane addresses.
 const STORES = ["Brick Lane Womens", "Brick Lane Mens", "Notting Hill", "Brick Lane Mens & Womens"];
+// TEST MODE (user, 19 Nov): only these addresses get the email. Everyone else is saved with email_status "held"
+// and nothing is sent. Empty this list to go live for everyone. Test addresses get the email every time (no once-only rule).
+const TEST_ONLY: string[] = ["sameer@y2kwholesale.com"];
 const ALLOWED_ORIGINS = [/^https:\/\/sale\.y2kxvintage\.com$/, /^https:\/\/y2k-annual-sale[a-z0-9-]*\.vercel\.app$/];
 
 const cors = (origin: string | null) => ({
@@ -150,13 +153,17 @@ Deno.serve(async (req) => {
   if (existing.data) {
     id = existing.data.id;
     await db.from("early_access_signups").update(row).eq("id", id);
-    if (existing.data.email_status === "sent") return json({ ok: true, already: true });
+    if (existing.data.email_status === "sent" && !TEST_ONLY.includes(mail)) return json({ ok: true, already: true });
   } else {
     const ins = await db.from("early_access_signups").insert(row).select("id").single();
     if (ins.error) return json({ ok: false, error: "Something went wrong. Please try again." }, 500);
     id = ins.data.id;
   }
 
+  if (TEST_ONLY.length && !TEST_ONLY.includes(mail)) {
+    await db.from("early_access_signups").update({ email_status: "held" }).eq("id", id);
+    return json({ ok: true });
+  }
   try {
     await send(mail, [first, last].filter(Boolean).join(" "), email(store));
     await db.from("early_access_signups").update({ email_status: "sent", email_sent_at: new Date().toISOString(), email_error: null }).eq("id", id);
