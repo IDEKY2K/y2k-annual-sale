@@ -1,5 +1,5 @@
 // Annual sale "Want early access?" sign-ups (added 17 Nov 2026).
-// The sign-up page at sale.y2kxvintage.com/early-access posts here. This function:
+// Sign-ups arrive from the Fillout form 9FDRy1w2KWus (webhook, 19 Nov) or the page sale.y2kxvintage.com/early-access. This function:
 //  1. saves the sign-up into Supabase table early_access_signups (one row per email address),
 //  2. sends the confirmation email from hello@y2kxvintage.com through Microsoft Graph,
 //     using its own Microsoft app (secrets HELLO_MS_TENANT_ID / HELLO_MS_CLIENT_ID / HELLO_MS_CLIENT_SECRET),
@@ -114,6 +114,33 @@ async function send(to: string, name: string, m: { subject: string; html: string
   if (!r.ok) throw new Error(`Send failed (${r.status}): ${(await r.text()).slice(0, 300)}`);
 }
 
+// Reads a Fillout submission. Only these exact store answers count as an annual sale early access sign-up
+// (apostrophes and capitals ignored), so the form's other event RSVPs (e.g. "Y2K Vintage Brick Lane") never get this email.
+// "Brick Lane Mens & Womens" is the old combined option: those people get both Brick Lane addresses.
+const FILLOUT_STORES: Record<string, string> = {
+  "brick lane mens & womens": "Brick Lane Mens & Womens",
+  "brick lane womens": "Brick Lane Womens",
+  "brick lane mens": "Brick Lane Mens",
+  "notting hill": "Notting Hill",
+};
+function storeFrom(v: string): string | null {
+  return FILLOUT_STORES[v.toLowerCase().replace(/[’']/g, "").replace(/\s+/g, " ").trim()] || null;
+}
+function filloutFields(qs: { name?: string; type?: string; value?: unknown }[]) {
+  const out: Record<string, unknown> = {};
+  for (const q of qs) {
+    const n = String(q.name || "").toLowerCase(), t = String(q.type || ""), v = q.value;
+    const sv = Array.isArray(v) ? v.join(" ") : typeof v === "string" ? v : "";
+    if (!out.email && (t === "EmailInput" || n.includes("email")) && sv.includes("@")) out.email = sv;
+    else if (!out.first_name && n.includes("first")) out.first_name = sv;
+    else if (!out.last_name && n.includes("last")) out.last_name = sv;
+    else if (!out.phone && (t === "PhoneNumber" || n.includes("phone"))) out.phone = sv;
+    else if (n.includes("consent") || n.includes("marketing")) out.marketing_consent = v === true || /^(yes|true)$/i.test(sv);
+    if (!out.store && sv && storeFrom(sv)) out.store = storeFrom(sv);
+  }
+  return out;
+}
+
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin");
   const H = cors(origin);
@@ -127,8 +154,17 @@ Deno.serve(async (req) => {
     return new Response(m.html, { headers: { ...H, "Content-Type": "text/html; charset=utf-8" } });
   }
 
+  // Fillout webhook (form 9FDRy1w2KWus, set up by the user in Fillout > Integrate > Webhook).
+  // Fillout sends {submission:{questions:[{name,type,value}]}}; we turn it into our normal fields.
+  const fromFillout = !!(b && b.submission && Array.isArray(b.submission.questions));
+  if (fromFillout) {
+    const f = filloutFields(b.submission.questions);
+    if (!f.store) return json({ ok: true, skipped: "not an annual sale early access sign-up" });
+    Object.assign(b, f, { source: "fillout" });
+  }
+
   // Honeypot: real people never fill the hidden "website" field. Pretend success.
-  if (clean(b.website)) return json({ ok: true });
+  if (!fromFillout && clean(b.website)) return json({ ok: true });
 
   const first = clean(b.first_name, 60), last = clean(b.last_name, 60);
   const mail = clean(b.email, 160).toLowerCase(), phone = clean(b.phone, 30);
@@ -138,7 +174,7 @@ Deno.serve(async (req) => {
 
   const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim();
   const ipHash = ip ? (await sha256("early-access:" + ip)).slice(0, 32) : null;
-  if (ipHash) {
+  if (ipHash && !fromFillout) { // Fillout's servers send every webhook, so the per-connection limit doesn't apply to them
     const since = new Date(Date.now() - 3600e3).toISOString();
     const c = await db.from("early_access_signups").select("id", { count: "exact", head: true }).eq("ip_hash", ipHash).gte("created_at", since);
     if ((c.count || 0) >= 5) return json({ ok: false, error: "Too many sign-ups from this connection. Please try again later." }, 429);
