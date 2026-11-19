@@ -37,8 +37,6 @@ button{font:inherit;font-weight:700;border:2px solid var(--ink);border-radius:99
 <div class="card"><h2>By store group</h2><table id="groups"></table></div>
 <div class="card"><h2>By design and placement</h2><table id="codes"></table>
   <div class="note">Codes with no scans yet are listed as 0. "Phones" counts different phones, so one person scanning twice is 1 phone.</div></div>
-<div class="card"><h2>Brighton vs Leeds</h2><table id="blcity"></table>
-  <div class="note"><b>Why so many "unknown":</b> Brighton and Leeds share the same QR codes. A scan's city comes from the phone's internet connection, and on 4G/5G UK networks often route through London, so it can't be trusted. A scan only counts as Brighton or Leeds when the phone's location confirms it (directly, or from the same phone visiting again on Wi-Fi). The store group total above is always exact.</div></div>
 <div class="card"><h2>Scans per day</h2><table id="days"></table></div>
 <div class="card"><h2>Phones</h2><table id="devices"></table></div>
 <p class="small muted">Test scans from the team's own phones are left out automatically. Private page: needs the staff password. Updates live when you press Refresh.</p>
@@ -69,7 +67,6 @@ async function load(){
   const max=Math.max(1,...Object.values(by).map(x=>x.scans));
   const rows=srcs.map(s=>{const x=by[s]||{scans:0,phones:0};const l=label(s);return {l,x}}).sort((a,b)=>b.x.scans-a.x.scans||a.l.g.localeCompare(b.l.g));
   table('codes',['Code','Scans','Phones'],rows.map(({l,x})=>[`<b>${esc(l.g)}</b> · ${esc(l.d)}${l.w?' · '+l.w:''}${x.last_scan?`<div class="small muted">Last scan ${fmt(x.last_scan)}</div>`:''}<div class="bar" style="width:${Math.round(100*x.scans/max)}%"></div>`,x.scans,x.phones]));
-  table('blcity',['City','Scans','Phones'],(d.bl_city||[]).map(x=>[esc(x.name),x.scans,x.phones]));
   table('days',['Day','London','Brighton & Leeds'],(d.by_day||[]).slice().reverse().map(x=>[new Date(x.day+'T12:00:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}),x.london,x.bl]));
   table('devices',['Phone','Scans'],(d.by_device||[]).map(x=>[x.name==='ios'?'iPhone':x.name==='android'?'Android':'Other',x.scans]));
 }
