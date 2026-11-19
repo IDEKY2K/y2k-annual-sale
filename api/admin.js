@@ -21,12 +21,21 @@ module.exports = async function handler(req, res) {
     let d = {}; try { d = await r.json() } catch (e) {}
     return res.status(r.ok ? 200 : 502).json(r.ok ? d : { error: d.error || 'Upload failed' });
   }
+  if (b.action === 'stats') {
+    // QR scan totals for /admin-stats (read-only; test phones excluded in Supabase sale_qr_stats).
+    const r = await fetch(SB + 'sale_qr_stats', { method: 'POST', headers: { apikey: KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p: staffKey }) });
+    let d = null; try { d = await r.json() } catch (e) {}
+    return res.status(r.ok ? 200 : 502).json(r.ok ? d : { error: (d && d.message) || 'Could not load stats' });
+  }
   if (b.action === 'price') {
     fn = 'sale_save_item';
     args = { p: staffKey, p_photo: b.photo, p_old: b.old_price ?? null, p_new: b.new_price ?? null, p_gender: b.gender || null, p_by: String(b.by || '').slice(0, 60) };
   } else if (b.action === 'category') {
     fn = 'sale_set_category';
     args = { p: staffKey, p_photo: b.photo, p_category: b.category || null, p_by: String(b.by || '').slice(0, 60) };
+  } else if (b.action === 'order') {
+    fn = 'sale_set_order';
+    args = { p: staffKey, p_photos: Array.isArray(b.photos) ? b.photos.map(String).slice(0, 2000) : [] };
   } else if (b.action === 'slideshow') {
     fn = 'sale_set_slideshow';
     args = { p: staffKey, live: !!b.live };
