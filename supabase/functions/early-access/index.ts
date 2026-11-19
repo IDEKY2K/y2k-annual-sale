@@ -126,15 +126,29 @@ const FILLOUT_STORES: Record<string, string> = {
 function storeFrom(v: string): string | null {
   return FILLOUT_STORES[v.toLowerCase().replace(/[’']/g, "").replace(/\s+/g, " ").trim()] || null;
 }
-function filloutFields(qs: { name?: string; type?: string; value?: unknown }[]) {
+// Turns any webhook body (Fillout form webhook or Zite database record.created webhook) into [name, value] pairs.
+// Handles {questions:[{name,value}]}, {fields:{Name:value}} and nested objects, whatever the exact shape.
+function pairs(o: unknown, key = "", out: [string, unknown][] = []) {
+  if (o && typeof o === "object" && !Array.isArray(o)) {
+    const r = o as Record<string, unknown>;
+    if ("value" in r && (typeof r.name === "string" || typeof r.label === "string")) out.push([String(r.name ?? r.label), r.value]);
+    else for (const [k, v] of Object.entries(r)) pairs(v, k, out);
+  } else if (Array.isArray(o)) {
+    if (o.every((x) => typeof x !== "object" || x === null)) out.push([key, o]);
+    else for (const x of o) pairs(x, key, out);
+  } else out.push([key, o]);
+  return out;
+}
+function webhookFields(body: unknown) {
   const out: Record<string, unknown> = {};
-  for (const q of qs) {
-    const n = String(q.name || "").toLowerCase(), t = String(q.type || ""), v = q.value;
+  for (const [name, v] of pairs(body)) {
+    const n = name.toLowerCase();
     const sv = Array.isArray(v) ? v.join(" ") : typeof v === "string" ? v : "";
-    if (!out.email && (t === "EmailInput" || n.includes("email")) && sv.includes("@")) out.email = sv;
+    if (n.includes("plus") || n.includes("+1")) continue; // the guest's plus-one, not the guest
+    if (!out.email && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(sv.trim()) && !n.includes("by")) out.email = sv;
     else if (!out.first_name && n.includes("first")) out.first_name = sv;
-    else if (!out.last_name && n.includes("last")) out.last_name = sv;
-    else if (!out.phone && (t === "PhoneNumber" || n.includes("phone"))) out.phone = sv;
+    else if (!out.last_name && n.includes("last") && !n.includes("update")) out.last_name = sv;
+    else if (!out.phone && n.includes("phone")) out.phone = sv;
     else if (n.includes("consent") || n.includes("marketing")) out.marketing_consent = v === true || /^(yes|true)$/i.test(sv);
     if (!out.store && sv && storeFrom(sv)) out.store = storeFrom(sv);
   }
@@ -154,13 +168,17 @@ Deno.serve(async (req) => {
     return new Response(m.html, { headers: { ...H, "Content-Type": "text/html; charset=utf-8" } });
   }
 
-  // Fillout webhook (form 9FDRy1w2KWus, set up by the user in Fillout > Integrate > Webhook).
-  // Fillout sends {submission:{questions:[{name,type,value}]}}; we turn it into our normal fields.
-  const fromFillout = !!(b && b.submission && Array.isArray(b.submission.questions));
+  // Webhook from Fillout/Zite (the user's form 9FDRy1w2KWus saves into Zite table "AW26 RSVPs"; the user added a
+  // record.created webhook there, 19 Nov). Anything that isn't our own page or a preview is treated as a webhook.
+  // Every webhook body is logged in early_access_webhook_log so its exact shape can be checked.
+  const fromFillout = !(b && typeof b.email === "string" && "first_name" in b);
   if (fromFillout) {
-    const f = filloutFields(b.submission.questions);
-    if (!f.store) return json({ ok: true, skipped: "not an annual sale early access sign-up" });
+    const f = webhookFields(b);
+    const skip = !f.store ? "not an annual sale early access sign-up" : !f.email ? "no email address found" : "";
+    await db.from("early_access_webhook_log").insert({ payload: b, result: skip || "accepted: " + f.store });
+    if (skip) return json({ ok: true, skipped: skip });
     Object.assign(b, f, { source: "fillout" });
+    if (!clean(b.first_name)) b.first_name = "-"; // the email never shows the name, so a missing name doesn't block it
   }
 
   // Honeypot: real people never fill the hidden "website" field. Pretend success.
