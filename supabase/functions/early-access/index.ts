@@ -54,11 +54,13 @@ function email(chosen?: string | null) {
   };
   const p = (t: string, extra = "") => `<p style="margin:0 0 14px;font-size:16px;line-height:1.45;font-weight:700;letter-spacing:-0.3px;color:${INK}${extra}">${t.toUpperCase()}</p>`;
   const store = (name: string, addr: string, full = false) =>
-    `<td width="${full ? "100%" : "50%"}" style="padding:6px;vertical-align:top"><div class="bubble" style="background-color:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);border-radius:14px;padding:14px 14px 12px">
+    `<td width="100%" style="width:100%;padding:6px;vertical-align:top"><div class="bubble" style="background-color:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);border-radius:14px;padding:14px 14px 12px">
 <div style="font-size:18px;font-weight:700;letter-spacing:-0.6px;color:${INK};text-transform:uppercase">${name.toUpperCase()}</div>
 <div style="font-size:14px;font-weight:700;letter-spacing:-0.2px;color:${INK};margin-top:4px;line-height:1.35">${addr.toUpperCase().replace(/<BR>/g, "<br>")}</div></div></td>`;
   const pick = chosen && ADDR[chosen] ? ADDR[chosen] : [BLW, BLM, NH];
-  const bubbles = pick.map(([n, a], i) => (i && i % 2 === 0 ? "</tr><tr>" : "") + store(n, a, pick.length === 1)).join("\n");
+  // One bubble per row, full width. (Side-by-side 50% bubbles made the Gmail iPhone app squash the whole email
+  // into a narrow column, 19 Nov, so they are stacked instead.)
+  const bubbles = pick.map(([n, a]) => store(n, a)).join("\n</tr><tr>\n");
   const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"><title>${esc(subject)}</title>
 <style>
 :root{color-scheme:light only;supported-color-schemes:light only}
@@ -76,7 +78,7 @@ function email(chosen?: string | null) {
 <body class="bg" style="margin:0;padding:0;background-color:${AQUA};background-image:linear-gradient(${AQUA},${AQUA})">
 <div style="display:none;max-height:0;overflow:hidden">LONDON ANNUAL SALE EARLY ACCESS EVENT, THURSDAY 26TH NOVEMBER AT 6:30PM.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="bg" bgcolor="${AQUA}" style="background-color:${AQUA};background-image:linear-gradient(${AQUA},${AQUA})"><tr><td align="center" style="padding:28px 14px 36px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="ink" style="max-width:560px;font-family:Arial,Helvetica,sans-serif;color:${INK}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="ink" style="width:100%;max-width:560px;font-family:Arial,Helvetica,sans-serif;color:${INK}">
 <tr><td style="padding:0 6px">
 <div style="font-size:34px;line-height:1;font-weight:700;letter-spacing:-2px;color:${INK}">YOU’RE ON THE LIST!</div>
 <div style="font-size:17px;line-height:1.1;font-weight:700;letter-spacing:-0.8px;color:${INK};margin:10px 0 22px">Y2K VINTAGE &nbsp;★&nbsp; LONDON ANNUAL SALE EARLY ACCESS EVENT</div>
